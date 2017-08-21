@@ -51,6 +51,9 @@ typings/
 # Output of 'npm pack'
 *.tgz
 
+# Yarn Lock file
+yarn.lock
+
 # Yarn Integrity file
 .yarn-integrity
 

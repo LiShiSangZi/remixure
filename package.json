@@ -1,0 +1,12 @@
+{
+  "name": "remixure",
+  "version": "0.0.1",
+  "description": "React skeleton Framework to help build web app.",
+  "main": "index.js",
+  "repository": "git@github.com:LiShiSangZi/remixure.git",
+  "author": "gogocorw <gogocrow@163.com>",
+  "license": "MIT",
+  "dependencies": {
+    "webpack": "^3.5.5"
+  }
+}
