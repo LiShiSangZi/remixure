@@ -106,37 +106,40 @@ const webpackOpt = {
     rules: [{
       test: /\.js(.*)$/,
       exclude: /node_modules|moment/,
-      loader: 'babel-loader',
-      query: {
-        cacheDirectory: process.env.NODE_ENV !== 'production'
-      }
+      use: {
+        loader: require.resolve('babel-loader'),
+        options: {
+          presets: [require.resolve('babel-preset-latest'), require.resolve('babel-preset-react')],
+          plugins: [require.resolve('babel-plugin-transform-runtime')],
+        },
+      },
     }, {
       loader: 'json-loader',
       test: /\.json$/
     }, {
       test: /\.less$/,
       loaders: ExtractTextPlugin.extract({
-        "use": [{
-          "loader": "css-loader",
-          "options": {
-            "sourceMap": true,
-            "minimize": false
+        use: [{
+          loader: require.resolve('css-loader'),
+          options: {
+            sourceMap: true,
+            minimize: false
           }
         }, {
-          "loader": "postcss-loader",
-          "options": {
-            "sourceMap": true,
-            "minimize": false,
-            "plugins": () => {
+          loader: require.resolve('postcss-loader'),
+          options: {
+            sourceMap: true,
+            minimize: false,
+            plugins: () => {
               return [autoprefixer];
             }
           }
         }, {
-          "loader": "less-loader",
-          "options": {
-            "sourceMap": true,
-            "minimize": false,
-            "sourceMap": true
+          loader: require.resolve('less-loader'),
+          options: {
+            sourceMap: true,
+            minimize: false,
+            sourceMap: true
           }
         }]
       })
