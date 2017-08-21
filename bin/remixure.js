@@ -86,7 +86,7 @@ const webpackOpt = {
     // We placed these paths second because we want `node_modules` to "win"
     // if there are any conflicts. This matches Node resolution mechanism.
     // https://github.com/facebookincubator/create-react-app/issues/253
-    modules: [sourceFolder, path.join(baseFolder, 'node_modules')].concat(
+    modules: [sourceFolder, path.join(baseFolder, 'node_modules'), path.join(__dirname, '..', 'node_modues')].concat(
       // It is guaranteed to exist because we tweak it in `env.js`
       process.env.NODE_PATH ? process.env.NODE_PATH.split(path.delimiter).filter(Boolean) : []
     ),
@@ -103,82 +103,112 @@ const webpackOpt = {
     }
   },
   module: {
-    strictExportPresence: true,
-    rules: [
-      // Process JS with Babel.
-      {
-        test: /\.(js|jsx)$/,
-        include: sourceFolder,
-        loader: require.resolve('babel-loader'),
-        options: {
-          plugins: [
-            // TODO: What should happen if we use another plugin?
-            // ['import', [{
-            //   libraryName: "antd",
-            //   style: true
-            // }]],
-          ],
-          compact: true,
-        },
-      }, {
-        test: /\.less$/,
-        exclude: [/node_modules/, /iconfont/],
-        use: ExtractTextPlugin.extract(
-          Object.assign({
-            fallback: require.resolve('style-loader'),
-            use: [{
-                loader: require.resolve('css-loader'),
-                options: {
-                  importLoaders: 1,
-                  minimize: true,
-                  sourceMap: true,
-                  modules: true,
-                  localIdentName: '[name]__[local]___[hash:base64:5]'
-                },
-              },
-              {
-                loader: require.resolve('postcss-loader'),
-                options: {
-                  // Necessary for external CSS imports to work
-                  // https://github.com/facebookincubator/create-react-app/issues/2677
-                  ident: 'postcss',
-                  plugins: () => [
-                    require('postcss-flexbugs-fixes'),
-                    autoprefixer({
-                      browsers: [
-                        '>1%',
-                        'last 4 versions',
-                        'Firefox ESR',
-                        'not ie < 9', // React doesn't support IE8 anyway
-                      ],
-                      flexbox: 'no-2009',
-                    }),
-                  ],
-                },
-              },
-              {
-                loader: require.resolve('less-loader'),
-                options: {
-                  // modifyVars: theme
-                }
-              },
-            ],
-          }, {}, )
-        ),
+    rules: [{
+      test: /\.js(.*)$/,
+      exclude: /node_modules|moment/,
+      loader: 'babel-loader',
+      query: {
+        cacheDirectory: process.env.NODE_ENV !== 'production'
       }
-    ]
-  }
-}
+    }, {
+      loader: 'json-loader',
+      test: /\.json$/
+    }, {
+      test: /\.less$/,
+      loaders: ExtractTextPlugin.extract({
+        "use": [{
+          "loader": "css-loader",
+          "options": {
+            "sourceMap": true,
+            "minimize": false
+          }
+        }, {
+          "loader": "postcss-loader",
+          "options": {
+            "sourceMap": true,
+            "minimize": false,
+            "plugins": () => {
+              return [autoprefixer];
+            }
+          }
+        }, {
+          "loader": "less-loader",
+          "options": {
+            "sourceMap": true,
+            "minimize": false,
+            "sourceMap": true
+          }
+        }]
+      })
+    }, {
+      test: /\.css$/,
+      loader: ExtractTextPlugin.extract({
+        "use": [{
+          "loader": "css-loader",
+          "options": {
+            "sourceMap": true,
+            "minimize": false
+          }
+        }, {
+          "loader": "postcss-loader",
+          "options": {
+            "plugins": () => {
+              return [autoprefixer];
+            }
+          }
+        }]
+      })
+    }],
+  },
+  plugins: [
+    /*
+    new CleanPlugin(['static'], {
+      root: __dirname
+    }),
+    new CopyPlugin([{
+      from: 'node_modules/antd/dist/antd.min.css*',
+      to: path.join(__dirname, 'static', '[name].[ext]'),
+      context: __dirname,
+    }, {
+      from: 'src/statics/*',
+      to: path.join(__dirname, 'static', '[name].[ext]'),
+      context: __dirname,
+    }]),
+    */
+    new ExtractTextPlugin({
+      filename: '[name].min.css',
+      allChunks: true
+    }),
+    new webpack.DefinePlugin({
+      'process.env': {
+        NODE_ENV: JSON.stringify('production')
+      }
+    }),
+    /*
+    new webpack.optimize.UglifyJsPlugin({
+      sourceMap: true,
+      compress: {
+        warnings: false,
+        drop_console: false,
+      }
+    }),
+    */
+  ]
+};
 
 const compiler = webpack(webpackOpt);
 compiler.run((err, stats) => {
   if (err) {
     console.log(err);
-  } else if (stats.hasErrors()) {
-    const s = stats.toJson();
-    s.errors.forEach(e => console.log(e));
   } else {
-    console.log(stats);
-    console.log(stats.toJson());
+    const s = stats.toJson('verbose');
+    s.errors.forEach(e => console.log(chalk.red(e)));
+    s.warnings.forEach(e => console.log(chalk.yellow(e)));
+    if (stats.hasErrors()) {
+      // s.errors.forEach(e => console.log(chalk.red(e)));
+    } else {
+      // s.warnings.forEach(e => console.log(chalk.yellow(e)));
+      console.log(s.entrypoints);
+    }
   }
 });
