@@ -10,16 +10,30 @@ const ModuleScopePlugin = require('react-dev-utils/ModuleScopePlugin');
 const path = require('path');
 const fs = require('fs');
 
+const colorSupported = require('supports-color');
+
 const baseFolder = path.resolve('.');
 const configPath = path.join(baseFolder, 'config');
 
 let config = {};
 
+const render = (color, content) => {
+  if (colorSupported) {
+    return chalk[color](content);
+  }
+  return content;
+}
+
+process.stderr.write(render('green', 'Start to do job.\n'));
+
 try {
   const c = require(path.join(configPath, 'config.default.js'));
   config = c;
 } catch (e) {
-  throw new Error(chalk.red('The config file is not found!'));
+  process.stderr.write(render('red', 'The config file is not found! You need a config.default.js file under config folder.\n'));
+
+  setImmediate(() => process.exit(1));
+  return;
 }
 
 let env = null;
@@ -48,6 +62,7 @@ try {
 } catch (e) {
 
 }
+process.stderr.write(render('green', 'Read the configurations.\n'));
 
 const sourceFolder = path.join(baseFolder, (config.srcFolder || 'src'));
 
@@ -57,11 +72,85 @@ if (config.entry && config.entry.entries) {
   entry = config.entry.entries;
 } else {
   fs.readdirSync(sourceFolder).filter(file => {
-    return fs.statSync(path.join(sourceFolder, file)).isFile && /\.js(x*)$/.test(file) && config.entry.exclude.indexOf(file) < 0;
+    return fs.statSync(path.join(sourceFolder, file)).isFile() && /\.js(x*)$/.test(file) && (!config.entry || config.entry.exclude.indexOf(file) < 0);
   }).forEach(file => {
     entry[file.replace(/\.js(x*)$/, '')] = path.join(sourceFolder, file);
   });
 }
+
+if (Object.keys(entry).length < 1) {
+  process.stderr.write(render('red', `You do not have entry files under folder ${sourceFolder}.\n`));
+
+  setImmediate(process.exit(1));
+  return;
+}
+
+// Enable babel-loader with React is default.
+const babelLoader = {
+  test: /\.js(.*)$/,
+  exclude: /node_modules/,
+  include: sourceFolder,
+  use: {
+    loader: require.resolve('babel-loader'),
+    options: {
+      presets: [require.resolve('babel-preset-es2015'), require.resolve('babel-preset-react')],
+      plugins: [require.resolve('babel-plugin-transform-runtime')],
+      compact: true,
+    },
+  },
+};
+if (config.enableAntD) {
+  babelLoader.use.options.plugins.push([require.resolve('babel-plugin-import'), [{
+    libraryName: "antd",
+    style: true
+  }]]);
+}
+const rules = [babelLoader];
+
+if (config.less) {
+  const use = [{
+    loader: require.resolve('css-loader'),
+    exclude: [/node_modues/],
+    options: {
+      sourceMap: true,
+      minimize: false
+    }
+  }];
+
+  if (config.less.exclude) {
+    use.exclude = use.exclude.concat(config.less.exclude);
+  }
+
+  if (config.less.enablePostCSS) {
+    use.push({
+      loader: require.resolve('postcss-loader'),
+      options: {
+        sourceMap: true,
+        minimize: false,
+        plugins: () => {
+          return [autoprefixer];
+        }
+      }
+    });
+  }
+
+  use.push({
+    loader: require.resolve('less-loader'),
+    options: {
+      sourceMap: true,
+      minimize: false,
+      sourceMap: true
+    }
+  });
+
+  rules.push({
+    test: /\.less$/,
+    loaders: ExtractTextPlugin.extract({
+      use,
+    })
+  });
+}
+
 
 /**
  * Build your webpack
@@ -103,7 +192,13 @@ const webpackOpt = {
     }
   },
   module: {
-    rules: [{
+    rules,
+
+
+
+    /*
+    [
+      {
       test: /\.js(.*)$/,
       exclude: /node_modules|moment/,
       use: {
@@ -161,7 +256,9 @@ const webpackOpt = {
           }
         }]
       })
-    }],
+    }
+  ],
+    */
   },
   plugins: [
     /*
@@ -204,14 +301,18 @@ compiler.run((err, stats) => {
   if (err) {
     console.log(err);
   } else {
-    const s = stats.toJson('verbose');
-    s.errors.forEach(e => console.log(chalk.red(e)));
-    s.warnings.forEach(e => console.log(chalk.yellow(e)));
-    if (stats.hasErrors()) {
-      // s.errors.forEach(e => console.log(chalk.red(e)));
-    } else {
-      // s.warnings.forEach(e => console.log(chalk.yellow(e)));
-      console.log(s.entrypoints);
+    const opt = {
+      colors: colorSupported,
+    }
+    const s = stats.toJson(opt);
+    s.errors.forEach(e => console.log(render('red', e)));
+    s.warnings.forEach(e => console.log(render('yellow', e)));
+    if (stats.hasErrors()) {} else {
+      // console.log(s);
     }
   }
 });
+const ProgressPlugin = require('webpack/lib/ProgressPlugin.js');
+compiler.apply(new ProgressPlugin({
+  profile: true
+}));
