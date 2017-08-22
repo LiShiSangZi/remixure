@@ -51,6 +51,8 @@ if (argObj.env) {
   env = argObj.env;
 }
 
+const isDev = env === 'dev';
+
 try {
   if (!env) {
     env = fs.readFileSync(path.join(configPath, 'env'));
@@ -108,22 +110,43 @@ if (config.enableAntD) {
 const rules = [babelLoader];
 
 if (config.less) {
+  const exclude = [/node_modues/];
+  if (config.less.exclude) {
+    exclude = exclude.concat(config.less.exclude);
+  }
+
   const use = [{
     loader: require.resolve('css-loader'),
-    exclude: [/node_modues/],
     options: {
-      sourceMap: true,
-      minimize: false
+      importLoaders: 1,
+      sourceMap: isDev,
+      minimize: !isDev,
+      modules: config.less.enableCSSModule,
+      localIdentName: '[name]__[local]___[hash:base64:5]',
     }
   }];
 
-  if (config.less.exclude) {
-    use.exclude = use.exclude.concat(config.less.exclude);
-  }
 
   if (config.less.enablePostCSS) {
     use.push({
       loader: require.resolve('postcss-loader'),
+      options: {
+        // Necessary for external CSS imports to work
+        // https://github.com/facebookincubator/create-react-app/issues/2677
+        ident: 'postcss',
+        plugins: () => [
+          require('postcss-flexbugs-fixes'),
+          autoprefixer({
+            browsers: [
+              '>1%',
+              'last 4 versions',
+              'Firefox ESR',
+              'not ie < 9', // React doesn't support IE8 anyway
+            ],
+            flexbox: 'no-2009',
+          }),
+        ],
+      },
       options: {
         sourceMap: true,
         minimize: false,
@@ -132,25 +155,24 @@ if (config.less) {
         }
       }
     });
+    use[0].options.importLoaders++;
   }
 
   use.push({
     loader: require.resolve('less-loader'),
     options: {
-      sourceMap: true,
-      minimize: false,
-      sourceMap: true
-    }
+
+    },
   });
 
   rules.push({
     test: /\.less$/,
-    loaders: ExtractTextPlugin.extract({
+    use: ExtractTextPlugin.extract({
+      fallback: require.resolve('style-loader'),
       use,
     })
   });
 }
-
 
 /**
  * Build your webpack
