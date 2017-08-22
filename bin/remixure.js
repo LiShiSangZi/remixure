@@ -110,7 +110,7 @@ if (config.enableAntD) {
 const rules = [babelLoader];
 
 if (config.less) {
-  const exclude = [/node_modues/];
+  let exclude = [/node_modues/];
   if (config.less.exclude) {
     exclude = exclude.concat(config.less.exclude);
   }

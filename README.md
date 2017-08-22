@@ -1,6 +1,16 @@
 # remixure
 
-* Still under build. Do not download. *
+remixure is to help to quickly build a webpack based React project.
+
+# Install
+Install with npm:
+```
+npm i --save-dev remixure
+```
+Install with yarn
+```
+yarn add remixure --dev
+```
 
 
 ## Configurations:
