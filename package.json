@@ -1,6 +1,6 @@
 {
   "name": "remixure",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "React skeleton Framework to help build web app.",
   "main": "index.js",
   "bin": "./bin/remixure.js",
@@ -19,6 +19,7 @@
     "chalk": "^2.1.0",
     "css-loader": "^0.28.5",
     "extract-text-webpack-plugin": "^3.0.0",
+    "html-webpack-plugin": "^2.30.1",
     "less": "^2.7.2",
     "less-loader": "^4.0.5",
     "postcss": "^6.0.9",

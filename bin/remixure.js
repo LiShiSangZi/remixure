@@ -4,6 +4,7 @@ const webpack = require('webpack');
 const autoprefixer = require('autoprefixer');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const chalk = require('chalk');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 const ModuleScopePlugin = require('react-dev-utils/ModuleScopePlugin');
 
@@ -174,6 +175,75 @@ if (config.less) {
   });
 }
 
+/** Init the plugin. */
+const plugins = [];
+
+if (!isDev) {
+  plugins.push(new webpack.optimize.UglifyJsPlugin({
+    compress: {
+      warnings: false,
+      // Disabled because of an issue with Uglify breaking seemingly valid code:
+      // https://github.com/facebookincubator/create-react-app/issues/2376
+      // Pending further investigation:
+      // https://github.com/mishoo/UglifyJS2/issues/2011
+      comparisons: false,
+    },
+    output: {
+      comments: false,
+      // Turned on because emoji and regex is not minified properly using default
+      // https://github.com/facebookincubator/create-react-app/issues/2488
+      ascii_only: true,
+    },
+    sourceMap: false,
+  }));
+}
+
+plugins.push(new ExtractTextPlugin({
+  filename: '[name].min.css',
+  allChunks: true
+}));
+
+if (exports.useMoment) {
+  plugins.push(new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/));
+}
+const chunksArray = [];
+if (exports.chunks && exports.chunks instanceof Array) {
+  plugin.push(new webpack.optimize.CommonsChunkPlugin({
+    names: exports.chunks,
+  }));
+  chunksArray = exports.chunks;
+}
+if (config.htmlPath) {
+  const htmlPath = path.join(baseFolder, config.htmlPath);
+  Object.keys(entry).forEach(_key => {
+    const p = new HtmlWebpackPlugin({
+      filename: `${_key}.html`,
+      chunks: chunksArray.concat([_key]),
+      inject: true,
+      template: htmlPath,
+    });
+
+    if (!isDev) {
+      p.minify = {
+        removeComments: true,
+        collapseWhitespace: true,
+        removeRedundantAttributes: true,
+        useShortDoctype: true,
+        removeEmptyAttributes: true,
+        removeStyleLinkTypeAttributes: true,
+        keepClosingSlash: true,
+        minifyJS: true,
+        minifyCSS: true,
+        minifyURLs: true,
+      }
+    }
+
+    plugins.push(p);
+  });
+}
+
+
+
 /**
  * Build your webpack
  */
@@ -282,8 +352,9 @@ const webpackOpt = {
   ],
     */
   },
+  plugins,
+  /*
   plugins: [
-    /*
     new CleanPlugin(['static'], {
       root: __dirname
     }),
@@ -296,7 +367,6 @@ const webpackOpt = {
       to: path.join(__dirname, 'static', '[name].[ext]'),
       context: __dirname,
     }]),
-    */
     new ExtractTextPlugin({
       filename: '[name].min.css',
       allChunks: true
@@ -306,7 +376,6 @@ const webpackOpt = {
         NODE_ENV: JSON.stringify('production')
       }
     }),
-    /*
     new webpack.optimize.UglifyJsPlugin({
       sourceMap: true,
       compress: {
@@ -314,12 +383,11 @@ const webpackOpt = {
         drop_console: false,
       }
     }),
-    */
   ]
+    */
 };
 
-const compiler = webpack(webpackOpt);
-compiler.run((err, stats) => {
+const onComplete = (err, stats) => {
   if (err) {
     console.log(err);
   } else {
@@ -327,14 +395,36 @@ compiler.run((err, stats) => {
       colors: colorSupported,
     }
     const s = stats.toJson(opt);
-    s.errors.forEach(e => console.log(render('red', e)));
-    s.warnings.forEach(e => console.log(render('yellow', e)));
+    s.errors.forEach(e => process.stderr.write(render('red', e)));
+    s.warnings.forEach(e => process.stderr.write(render('yellow', e)));
+    process.stderr.write('\n');
     if (stats.hasErrors()) {} else {
       // console.log(s);
+      process.stderr.write(render('green', 'Build Done!'));
     }
   }
-});
-const ProgressPlugin = require('webpack/lib/ProgressPlugin.js');
-compiler.apply(new ProgressPlugin({
-  profile: true
-}));
+}
+const compiler = webpack(webpackOpt);
+
+try {
+  if (isDev) {
+    const watching = compiler.watch({}, onComplete);
+    // watching.close((...args) => {
+    //   console.log(args);
+    //   // process.stderr.write('Watching Ended.');
+    //   // process.exit(0);
+    // });
+
+
+
+    process.stderr.write(render('green', 'Watching Started!\n'));
+  } else {
+    compiler.run(onComplete);
+  }
+  const ProgressPlugin = require('webpack/lib/ProgressPlugin.js');
+  compiler.apply(new ProgressPlugin({
+    profile: true
+  }));
+} catch (e) {
+  console.log(e);
+}
