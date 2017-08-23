@@ -382,6 +382,17 @@ const webpackOpt = {
     */
 };
 
+const formatSize = size => {
+  if (size <= 0) {
+    return "0 bytes";
+  }
+
+  const abbreviations = ["bytes", "kB", "MB", "GB"];
+  const index = Math.floor(Math.log(size) / Math.log(1000));
+
+  return `${+(size / Math.pow(1000, index)).toPrecision(3)} ${abbreviations[index]}`;
+};
+
 const onComplete = (err, stats) => {
   if (err) {
     console.log(err);
@@ -399,7 +410,39 @@ const onComplete = (err, stats) => {
         setImmediate(() => process.exit(1));
       }
     } else {
-      console.log(stats.compilation.compiler.entries);
+      process.stderr.write(render('white', `Hash: ${s.hash}\nTime: ${s.time}ms\n`));
+      const data = [
+        ["Asset", "Size", "Chunks", "", "", "Chunk Names"]
+      ];
+      // Print the result:
+      s.assets.forEach(asset => {
+        data.push([
+          asset.name.replace(/.+\//, ''),
+          formatSize(asset.size),
+          asset.chunks.join(', '),
+          asset.emitted ? "[emitted]" : "",
+          asset.isOverSizeLimit ? "[big]" : "",
+          asset.chunkNames.join(", "),
+        ]);
+      });
+
+      let maxLength = data[0].map(v => 0);
+      data.forEach(asset => {
+        asset.forEach((a, index) => {
+          const length = a.length;
+          maxLength[index] = Math.max(maxLength[index], length);
+        });
+      });
+
+      data.forEach(asset => {
+        const str = asset.map((a, index) => {
+          const length = a.length;
+          let add = maxLength[index] - length;
+          return `${a}${Buffer.alloc(add, ' ').toString()}`;
+        }).join(' ');
+
+        process.stderr.write(render('green', `${str}\n`));
+      });
       process.stderr.write(render('green', 'Build Done!\n'));
     }
   }
