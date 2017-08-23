@@ -1,5 +1,7 @@
 # remixure
 
+## DO NOT DOWNLOAD. I AM STILL WORK ON IT. SORRY...
+
 remixure is to help to quickly build a webpack based React project.
 
 # Install

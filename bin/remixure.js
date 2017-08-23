@@ -399,7 +399,8 @@ const onComplete = (err, stats) => {
         setImmediate(() => process.exit(1));
       }
     } else {
-      process.stderr.write(render('green', 'Build Done!'));
+      console.log(stats.compilation.compiler.entries);
+      process.stderr.write(render('green', 'Build Done!\n'));
     }
   }
 }
