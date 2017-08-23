@@ -8,7 +8,8 @@
   "author": "gogocorw <gogocrow@163.com>",
   "license": "MIT",
   "scripts": {
-    "beautify-lint": "beautify-lint \"lib/**/*.js\" \"hot/**/*.js\" \"bin/**/*.js\" \"benchmark/*.js\" \"test/*.js\""
+    "beautify-lint": "beautify-lint \"lib/**/*.js\" \"hot/**/*.js\" \"bin/**/*.js\" \"benchmark/*.js\" \"test/*.js\"",
+    "release": "standard-version"
   },
   "dependencies": {
     "autoprefixer": "^7.1.2",
@@ -36,6 +37,7 @@
     "webpack-dev-server": "^2.7.1"
   },
   "devDependencies": {
-    "beautify-lint": "^1.0.4"
+    "beautify-lint": "^1.0.4",
+    "standard-version": "^4.2.0"
   }
 }
