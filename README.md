@@ -38,6 +38,9 @@ yarn run production
 
 ## Configurations:
 ```javascript
+
+exports.publicPath = '/'; // Optional: The public path for the build. Default is /.
+
 exports.less = {
   // Enable less
 
@@ -55,7 +58,18 @@ exports.useMoment = true; // If you are using moment.js.
 
 exports.chunks = ['vendor', 'components']; // The chunk key you want to do the chunk.
 
-exports.htmlPath = 'public/index.html'; // If you want to pack index.html with the <script> inject. You need the speicific your index path.
+exports.htmlPath = 'public/index.html'; // If you want to pack index.html with the <script> inject. You need the speicific your index template path.
 
 exports.cleanBeforeBuild = true; // If you want to clean the build folder before job start.
+
+```
+
+If you want to use the dev mode. There are some addional configurations under config/config.dev.js:
+```javascript
+// This can be put in config.dev.js so that the production will not excuted.
+exports.devServer = {
+  "HTTPS": "https", // Optional: Default value is http.
+  "HOST": "0.0.0.0", // Optional: Default value is 0.0.0.0.
+  "PORT": "8888", // Optional: Default value is 8888.
+}; // If you want to enable the devServer.
 ```

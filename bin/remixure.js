@@ -17,6 +17,8 @@ const colorSupported = require('supports-color');
 const baseFolder = path.resolve('.');
 const configPath = path.join(baseFolder, 'config');
 
+const devServer = require('./devServer');
+
 let config = {};
 
 const render = (color, content) => {
@@ -63,7 +65,7 @@ try {
   }
   const addFileName = `config.${env}.js`;
   const c = require(path.join(configPath, addFileName));
-  config = Object.assign(config, addFileName);
+  config = Object.assign(config, c);
 } catch (e) {
 
 }
@@ -224,6 +226,7 @@ if (exports.chunks && exports.chunks instanceof Array) {
 }
 if (config.htmlPath) {
   const htmlPath = path.join(baseFolder, config.htmlPath);
+  console.log(htmlPath);
   Object.keys(entry).forEach(_key => {
     const p = new HtmlWebpackPlugin({
       filename: `${_key}.html`,
@@ -269,7 +272,7 @@ const webpackOpt = {
     filename: './js/[name].[chunkhash:8].min.js',
     chunkFilename: './js/[name].[chunkhash:8].chunk.min.js',
     // We inferred the "public path" (such as / or /my-project) from homepage.
-    publicPath: '/',
+    publicPath: config.publicPath || '/',
   },
   resolve: {
     // This allows you to set a fallback for where Webpack should look for modules.
@@ -462,9 +465,12 @@ const compiler = webpack(webpackOpt);
 
 try {
   if (isDev) {
+    devServer(config, webpackOpt);
+
     const watching = compiler.watch({}, onComplete);
 
     process.stderr.write(render('green', 'Watching Started!\n'));
+
   } else {
     compiler.run(onComplete);
   }
