@@ -7,6 +7,9 @@
   "repository": "git@github.com:LiShiSangZi/remixure.git",
   "author": "gogocorw <gogocrow@163.com>",
   "license": "MIT",
+  "engines": {
+    "node": ">=4.3.0 <5.0.0 || >=5.10"
+  },
   "scripts": {
     "beautify-lint": "beautify-lint \"lib/**/*.js\" \"hot/**/*.js\" \"bin/**/*.js\" \"benchmark/*.js\" \"test/*.js\"",
     "release": "standard-version"

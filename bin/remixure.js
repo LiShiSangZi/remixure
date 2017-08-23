@@ -283,7 +283,7 @@ const webpackOpt = {
     // We placed these paths second because we want `node_modules` to "win"
     // if there are any conflicts. This matches Node resolution mechanism.
     // https://github.com/facebookincubator/create-react-app/issues/253
-    modules: [sourceFolder, path.join(baseFolder, 'node_modules'), path.join(__dirname, '..', 'node_modues')].concat(
+    modules: [sourceFolder, path.join(baseFolder, 'node_modules'), path.join(__dirname, '..', 'node_modues'), path.join(baseFolder, 'plugins'), path.join(baseFolder, 'config')].concat(
       // It is guaranteed to exist because we tweak it in `env.js`
       process.env.NODE_PATH ? process.env.NODE_PATH.split(path.delimiter).filter(Boolean) : []
     ),
