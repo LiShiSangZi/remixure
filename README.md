@@ -57,5 +57,5 @@ exports.chunks = ['vendor', 'components']; // The chunk key you want to do the c
 
 exports.htmlPath = 'public/index.html'; // If you want to pack index.html with the <script> inject. You need the speicific your index path.
 
-
+exports.cleanBeforeBuild = true; // If you want to clean the build folder before job start.
 ```

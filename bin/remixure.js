@@ -5,6 +5,7 @@ const autoprefixer = require('autoprefixer');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const chalk = require('chalk');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const CleanPlugin = require('clean-webpack-plugin');
 
 const ModuleScopePlugin = require('react-dev-utils/ModuleScopePlugin');
 
@@ -178,6 +179,14 @@ if (config.less) {
 /** Init the plugin. */
 const plugins = [];
 
+if (config.cleanBeforeBuild) {
+  plugins.push(
+    new CleanPlugin([config.targetFolder || 'dist'], {
+      root: baseFolder
+    })
+  );
+}
+
 if (!isDev) {
   plugins.push(new webpack.optimize.UglifyJsPlugin({
     compress: {
@@ -242,6 +251,8 @@ if (config.htmlPath) {
   });
 }
 
+const outputFolder = path.join(baseFolder, (config.targetFolder || 'dist'));
+
 /**
  * Build your webpack
  */
@@ -251,7 +262,7 @@ const webpackOpt = {
   entry,
   output: {
     // The build folder.
-    path: path.join(baseFolder, (config.targetFolder || 'dist')),
+    path: outputFolder,
     // Generated JS file names (with nested folders).
     // There will be one main bundle, and one file per asynchronous chunk.
     // We don't currently advertise code splitting but Webpack supports it.
