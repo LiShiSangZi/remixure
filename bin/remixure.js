@@ -52,6 +52,7 @@ if (argObj.env) {
   env = argObj.env;
 }
 
+process.stderr.write(render('green', 'Read the configurations.\n'));
 const isDev = env === 'dev';
 
 try {
@@ -65,7 +66,7 @@ try {
 } catch (e) {
 
 }
-process.stderr.write(render('green', 'Read the configurations.\n'));
+process.stderr.write(render('green', `The current enviroment is ${env}.\n`));
 
 const sourceFolder = path.join(baseFolder, (config.srcFolder || 'src'));
 
@@ -398,8 +399,12 @@ const onComplete = (err, stats) => {
     s.errors.forEach(e => process.stderr.write(render('red', e)));
     s.warnings.forEach(e => process.stderr.write(render('yellow', e)));
     process.stderr.write('\n');
-    if (stats.hasErrors()) {} else {
-      // console.log(s);
+    if (stats.hasErrors()) {
+      if (!isDev) {
+        process.stderr.write(render('red', 'Compile with errors!'));
+        setImmediate(() => process.exit(1));
+      }
+    } else {
       process.stderr.write(render('green', 'Build Done!'));
     }
   }
@@ -409,13 +414,6 @@ const compiler = webpack(webpackOpt);
 try {
   if (isDev) {
     const watching = compiler.watch({}, onComplete);
-    // watching.close((...args) => {
-    //   console.log(args);
-    //   // process.stderr.write('Watching Ended.');
-    //   // process.exit(0);
-    // });
-
-
 
     process.stderr.write(render('green', 'Watching Started!\n'));
   } else {
