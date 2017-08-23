@@ -100,8 +100,12 @@ const babelLoader = {
   use: {
     loader: require.resolve('babel-loader'),
     options: {
-      presets: [require.resolve('babel-preset-es2015'), require.resolve('babel-preset-react')],
-      plugins: [require.resolve('babel-plugin-transform-runtime')],
+      presets: [require.resolve('babel-preset-latest'), require.resolve('babel-preset-react')],
+      plugins: [
+        require.resolve('babel-plugin-transform-runtime'), 
+        require.resolve('babel-plugin-syntax-dynamic-import'),
+        require.resolve('babel-plugin-dynamic-import-node'),
+      ],
       compact: true,
     },
   },
@@ -189,7 +193,7 @@ if (config.cleanBeforeBuild) {
   );
 }
 
-if (!isDev) {
+if (!isDev && !config.ignoreUglify) {
   plugins.push(new webpack.optimize.UglifyJsPlugin({
     compress: {
       warnings: false,

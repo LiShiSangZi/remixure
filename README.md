@@ -1,16 +1,15 @@
 # remixure
 
-## DO NOT DOWNLOAD. I AM STILL WORK ON IT. SORRY...
-
-remixure is to help to quickly build a webpack based React project.
+remixure is to help to quickly build a webpack based React project. You don't have to familay with the webpack, babel and so on.
+remixure will help to build your React/ES6/LESS code. All you have to do is to install the remixure and run the build.
 
 # Install
 Install with npm:
-```
+```shell
 npm i --save-dev remixure
 ```
 Install with yarn
-```
+```shell
 yarn add remixure --dev
 ```
 
@@ -28,7 +27,7 @@ yarn add remixure --dev
 - config.${env}.js: The configuration file for the target env. It will overwrite the config.default.js.
 
 3. Do the build:
-```
+```shell
 yarn run dev
 # OR
 yarn run production
@@ -53,6 +52,8 @@ exports.less = {
 }
 
 exports.enableAntD = true;  // If you are using antd.
+
+exports.ignoreUglify = true; // You can ignore the uglify process by setting this to true.
 
 exports.useMoment = true; // If you are using moment.js.
 
