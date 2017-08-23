@@ -128,7 +128,6 @@ if (config.less) {
     }
   }];
 
-
   if (config.less.enablePostCSS) {
     use.push({
       loader: require.resolve('postcss-loader'),
@@ -243,8 +242,6 @@ if (config.htmlPath) {
   });
 }
 
-
-
 /**
  * Build your webpack
  */
@@ -286,9 +283,6 @@ const webpackOpt = {
   },
   module: {
     rules,
-
-
-
     /*
     [
       {
