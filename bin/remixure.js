@@ -94,7 +94,7 @@ if (Object.keys(entry).length < 1) {
 
 // Enable babel-loader with React is default.
 const babelLoader = {
-  test: /\.js(.*)$/,
+  test: /\.(js|jsx)$/,
   exclude: /node_modules/,
   include: sourceFolder,
   use: {
