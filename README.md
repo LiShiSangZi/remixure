@@ -50,6 +50,12 @@ exports.less = {
   // Exclude folder. node_modules is the default folder. Do not need to add it.
   exclude: [/iconfont/],
 }
+exports.entry = {
+  // This is the entry file configuration. 
+  // By default entry files will be all jsx/js file under src's root folder. 
+  // If you want to exclude some file, you need to do as follows: 
+  
+}
 
 exports.enableAntD = true;  // If you are using antd.
 
@@ -62,6 +68,8 @@ exports.chunks = ['vendor', 'components']; // The chunk key you want to do the c
 exports.htmlPath = 'public/index.html'; // If you want to pack index.html with the <script> inject. You need the speicific your index template path.
 
 exports.cleanBeforeBuild = true; // If you want to clean the build folder before job start.
+
+exports.compiledNodeModules = ['YourModuleCode']; // If you want to build some node_module folders using babel loader. Put it here.
 
 ```
 

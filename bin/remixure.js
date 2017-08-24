@@ -51,6 +51,7 @@ args.forEach(v => {
   }
 });
 
+
 if (argObj.env) {
   env = argObj.env;
 }
@@ -73,6 +74,14 @@ process.stderr.write(render('green', `The current enviroment is ${env}.\n`));
 
 const sourceFolder = path.join(baseFolder, (config.srcFolder || 'src'));
 
+if (!process.env.BABEL_ENV) {
+  if (isDev) {
+    process.env.BABEL_ENV = 'development';
+  } else {
+    process.env.BABEL_ENV = 'production';
+  }
+}
+
 /** webpack entry list. */
 const entry = {};
 if (config.entry && config.entry.entries) {
@@ -91,25 +100,44 @@ if (Object.keys(entry).length < 1) {
   setImmediate(process.exit(1));
   return;
 }
-
+let includeModules = [];
+if (config.compiledNodeModules) {
+  includeModules = config.compiledNodeModules.map(m =>
+    path.join(sourceFolder, 'node_modules', m));
+    // new RegExp(`node_modules/${m}`));
+}
+const babelConfig = {
+  loader: require.resolve('babel-loader'),
+  options: {
+    presets: [
+      require.resolve('babel-preset-react-app'),
+    ],
+    plugins: [
+      require.resolve('babel-plugin-transform-runtime'),
+      require.resolve('babel-plugin-syntax-dynamic-import'),
+      require.resolve('babel-plugin-dynamic-import-node'),
+    ],
+    compact: true,
+  },
+};
+console.log(includeModules);
 // Enable babel-loader with React is default.
 const babelLoader = {
   test: /\.(js|jsx)$/,
   exclude: /node_modules/,
-  include: sourceFolder,
-  use: {
-    loader: require.resolve('babel-loader'),
-    options: {
-      presets: [require.resolve('babel-preset-latest'), require.resolve('babel-preset-react')],
-      plugins: [
-        require.resolve('babel-plugin-transform-runtime'), 
-        require.resolve('babel-plugin-syntax-dynamic-import'),
-        require.resolve('babel-plugin-dynamic-import-node'),
-      ],
-      compact: true,
-    },
-  },
+  include: includeModules.concat(sourceFolder),
+  // include: /minion/, //includeModules.concat(sourceFolder),
+  use: babelConfig,
 };
+console.log(babelLoader);
+
+// if (config.compiledNodeModules) {
+//   let reg = config.compiledNodeModules.join('|');
+//   reg = new RegExp(`(${reg})(.*)\.(js|jsx)`);
+
+//   rules.push()
+// }
+
 if (config.enableAntD) {
   babelLoader.use.options.plugins.push([require.resolve('babel-plugin-import'), [{
     libraryName: "antd",
@@ -230,7 +258,6 @@ if (exports.chunks && exports.chunks instanceof Array) {
 }
 if (config.htmlPath) {
   const htmlPath = path.join(baseFolder, config.htmlPath);
-  console.log(htmlPath);
   Object.keys(entry).forEach(_key => {
     const p = new HtmlWebpackPlugin({
       filename: `${_key}.html`,
