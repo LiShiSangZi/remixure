@@ -51,7 +51,6 @@ args.forEach(v => {
   }
 });
 
-
 if (argObj.env) {
   env = argObj.env;
 }
@@ -103,8 +102,8 @@ if (Object.keys(entry).length < 1) {
 let includeModules = [];
 if (config.compiledNodeModules) {
   includeModules = config.compiledNodeModules.map(m =>
-    path.join(sourceFolder, 'node_modules', m));
-    // new RegExp(`node_modules/${m}`));
+    // path.join(sourceFolder, 'node_modules', m));
+    new RegExp(`node_modules/${m}`));
 }
 const babelConfig = {
   loader: require.resolve('babel-loader'),
@@ -124,12 +123,21 @@ console.log(includeModules);
 // Enable babel-loader with React is default.
 const babelLoader = {
   test: /\.(js|jsx)$/,
-  exclude: /node_modules/,
-  include: includeModules.concat(sourceFolder),
+  // exclude: /node_modules/,
+  exclude: (path) => {
+    if (/node_modules/.test(path)) {
+      for (let i = 0; i < includeModules.length; i++) {
+        if (includeModules[i].test(path)) {
+          return false;
+        }
+      }
+      return true;
+    }
+    return false;
+  },
   // include: /minion/, //includeModules.concat(sourceFolder),
   use: babelConfig,
 };
-console.log(babelLoader);
 
 // if (config.compiledNodeModules) {
 //   let reg = config.compiledNodeModules.join('|');
