@@ -119,7 +119,7 @@ const babelConfig = {
     compact: true,
   },
 };
-console.log(includeModules);
+
 // Enable babel-loader with React is default.
 const babelLoader = {
   test: /\.(js|jsx)$/,
