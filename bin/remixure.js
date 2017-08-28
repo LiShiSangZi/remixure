@@ -448,12 +448,12 @@ try {
       webpackOpt.module.rules.push({
         test: /lang.json$/,
         use: [{
-          loader: require.resolve('json-loader'),
-        }, {
           loader: require.resolve('lang-loader'),
           query: {
             language: config.i18n.defaultLanguage,
           },
+        }, {
+          loader: require.resolve('json-loader'),
         }]
       });
     }
@@ -497,7 +497,7 @@ try {
             if (obj instanceof RegExp) {
               return obj;
             }
-            const res = (obj instanceof Array)?[]:{};
+            const res = (obj instanceof Array) ? [] : {};
 
             if (obj.__proto__ && !(obj instanceof Array)) {
               res.__proto__ = obj.__proto__;
@@ -515,12 +515,12 @@ try {
         opt.module.rules.push({
           test: /lang.json$/,
           use: [{
-            loader: require.resolve('json-loader'),
-          }, {
             loader: require.resolve('lang-loader'),
             query: {
               language: lang,
             },
+          }, {
+            loader: require.resolve('json-loader'),
           }],
         });
         opt.output.filename = `./js/[name].[chunkhash:8].min.js`;
