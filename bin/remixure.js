@@ -376,6 +376,10 @@ const webpackOpt = {
   plugins,
 };
 
+if (isDev) {
+  webpackOpt.devtool = 'source-map';
+}
+
 const formatSize = size => {
   if (size <= 0) {
     return "0 bytes";
@@ -493,10 +497,8 @@ try {
         let found = null;
 
         const clone = (obj) => {
-          if (typeof obj === 'object') {
-            if (obj instanceof RegExp) {
-              return obj;
-            }
+          if (typeof obj === 'object' && !(obj instanceof RegExp)) {
+
             const res = (obj instanceof Array) ? [] : {};
 
             if (obj.__proto__ && !(obj instanceof Array)) {
