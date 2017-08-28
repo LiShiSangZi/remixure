@@ -135,16 +135,8 @@ const babelLoader = {
     }
     return false;
   },
-  // include: /minion/, //includeModules.concat(sourceFolder),
   use: babelConfig,
 };
-
-// if (config.compiledNodeModules) {
-//   let reg = config.compiledNodeModules.join('|');
-//   reg = new RegExp(`(${reg})(.*)\.(js|jsx)`);
-
-//   rules.push()
-// }
 
 if (config.enableAntD) {
   babelLoader.use.options.plugins.push([require.resolve('babel-plugin-import'), [{
@@ -155,11 +147,6 @@ if (config.enableAntD) {
 const rules = [babelLoader];
 
 if (config.less) {
-  let exclude = [/node_modues/];
-  if (config.less.exclude) {
-    exclude = exclude.concat(config.less.exclude);
-  }
-
   const use = [{
     loader: require.resolve('css-loader'),
     options: {
@@ -167,7 +154,7 @@ if (config.less) {
       sourceMap: isDev,
       minimize: !isDev,
       modules: config.less.enableCSSModule,
-      localIdentName: '[name]__[local]___[hash:base64:5]',
+      localIdentName: config.less.enableCSSModule ? '[name]__[local]___[hash:base64:5]' : null,
     }
   }];
 
@@ -211,11 +198,41 @@ if (config.less) {
 
   rules.push({
     test: /\.less$/,
+    exclude: (path) => {
+      if (/antd/.test(path)) {
+        return true;
+      }
+      return /node_modues/.test(path);
+    },
     use: ExtractTextPlugin.extract({
       fallback: require.resolve('style-loader'),
       use,
-    })
+    }),
   });
+
+  if (config.enableAntD && config.less.enableCSSModule) {
+    // Set another rule for antd files.
+    rules.push({
+      test: /\.less$/,
+      include: /antd|minion/,
+      use: ExtractTextPlugin.extract({
+        fallback: require.resolve('style-loader'),
+        use: [{
+            loader: require.resolve('css-loader'),
+            options: {
+              importLoaders: 3,
+              sourceMap: isDev,
+              minimize: false,//!isDev,
+            }
+          },
+          {
+            loader: require.resolve('less-loader'),
+            options: {},
+          },
+        ],
+      }),
+    });
+  }
 }
 
 /** Init the plugin. */
@@ -251,7 +268,8 @@ if (!isDev && !config.ignoreUglify) {
 
 plugins.push(new ExtractTextPlugin({
   filename: '[name].min.css',
-  allChunks: true
+  allChunks: true,
+  ignoreOrder: true,
 }));
 
 if (exports.useMoment) {
