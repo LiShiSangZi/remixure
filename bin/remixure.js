@@ -231,328 +231,315 @@ if (config.less) {
     }
 
     rules.push({
-        test: /\.less$/,
-        include: new RegExp(r.join('|')),
-          use: ExtractTextPlugin.extract({
-            fallback: require.resolve('style-loader'),
-            use: [{
-                loader: require.resolve('css-loader'),
-                options: {
-                  importLoaders: 3,
-                  sourceMap: isDev,
-                  minimize: false, //!isDev,
-                }
-              },
-              {
-                loader: require.resolve('less-loader'),
-                options: {},
-              },
-            ],
-          }),
-        });
-    }
-  }
-
-  /** Init the plugin. */
-  const plugins = [];
-
-  if (config.cleanBeforeBuild) {
-    plugins.push(
-      new CleanPlugin([config.targetFolder || 'dist'], {
-        root: baseFolder
-      })
-    );
-  }
-
-  if (!isDev && !config.ignoreUglify) {
-    plugins.push(new webpack.optimize.UglifyJsPlugin({
-      compress: {
-        warnings: false,
-        // Disabled because of an issue with Uglify breaking seemingly valid code:
-        // https://github.com/facebookincubator/create-react-app/issues/2376
-        // Pending further investigation:
-        // https://github.com/mishoo/UglifyJS2/issues/2011
-        comparisons: false,
-      },
-      output: {
-        comments: false,
-        // Turned on because emoji and regex is not minified properly using default
-        // https://github.com/facebookincubator/create-react-app/issues/2488
-        ascii_only: true,
-      },
-      sourceMap: false,
-    }));
-  }
-
-  plugins.push(new ExtractTextPlugin({
-    filename: '[name].min.css',
-    allChunks: true,
-    ignoreOrder: true,
-  }));
-
-  if (exports.useMoment) {
-    plugins.push(new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/));
-  }
-  const chunksArray = [];
-  if (exports.chunks && exports.chunks instanceof Array) {
-    plugin.push(new webpack.optimize.CommonsChunkPlugin({
-      names: exports.chunks,
-    }));
-    chunksArray = exports.chunks;
-  }
-  if (config.htmlPath) {
-    const htmlPath = path.join(baseFolder, config.htmlPath);
-    Object.keys(entry).forEach(_key => {
-      const p = new HtmlWebpackPlugin({
-        filename: `${_key}.html`,
-        chunks: chunksArray.concat([_key]),
-        inject: true,
-        template: htmlPath,
-      });
-
-      if (!isDev) {
-        p.minify = {
-          removeComments: true,
-          collapseWhitespace: true,
-          removeRedundantAttributes: true,
-          useShortDoctype: true,
-          removeEmptyAttributes: true,
-          removeStyleLinkTypeAttributes: true,
-          keepClosingSlash: true,
-          minifyJS: true,
-          minifyCSS: true,
-          minifyURLs: true,
-        }
-      }
-
-      plugins.push(p);
+      test: /\.less$/,
+      include: new RegExp(r.join('|')),
+      use: ExtractTextPlugin.extract({
+        fallback: require.resolve('style-loader'),
+        use: [{
+            loader: require.resolve('css-loader'),
+            options: {
+              importLoaders: 3,
+              sourceMap: isDev,
+              minimize: !isDev,
+            }
+          },
+          {
+            loader: require.resolve('less-loader'),
+            options: {},
+          },
+        ],
+      }),
     });
   }
+}
 
-  const outputFolder = path.join(baseFolder, (config.targetFolder || 'dist'));
+/** Init the plugin. */
+const plugins = [];
 
-  /**
-   * Build your webpack
-   */
-  const webpackOpt = {
-    // In production, we only want to load the polyfills and the app code.
-    bail: true,
-    entry,
+if (config.cleanBeforeBuild) {
+  plugins.push(
+    new CleanPlugin([config.targetFolder || 'dist'], {
+      root: baseFolder
+    })
+  );
+}
+
+if (!isDev && !config.ignoreUglify) {
+  plugins.push(new webpack.optimize.UglifyJsPlugin({
+    compress: {
+      warnings: false,
+      // Disabled because of an issue with Uglify breaking seemingly valid code:
+      // https://github.com/facebookincubator/create-react-app/issues/2376
+      // Pending further investigation:
+      // https://github.com/mishoo/UglifyJS2/issues/2011
+      comparisons: false,
+    },
     output: {
-      // The build folder.
-      path: outputFolder,
-      // Generated JS file names (with nested folders).
-      // There will be one main bundle, and one file per asynchronous chunk.
-      // We don't currently advertise code splitting but Webpack supports it.
-      filename: './js/[name].[chunkhash:8].min.js',
-      chunkFilename: './js/[name].[chunkhash:8].chunk.min.js',
-      // We inferred the "public path" (such as / or /my-project) from homepage.
-      publicPath: config.publicPath || '/',
+      comments: false,
+      // Turned on because emoji and regex is not minified properly using default
+      // https://github.com/facebookincubator/create-react-app/issues/2488
+      ascii_only: true,
     },
-    resolve: {
-      // This allows you to set a fallback for where Webpack should look for modules.
-      // We placed these paths second because we want `node_modules` to "win"
-      // if there are any conflicts. This matches Node resolution mechanism.
-      // https://github.com/facebookincubator/create-react-app/issues/253
-      modules: [sourceFolder, path.join(baseFolder, 'node_modules'), path.join(__dirname, '..', 'node_modues'), path.join(baseFolder, 'plugins'), path.join(baseFolder, 'config')].concat(
-        // It is guaranteed to exist because we tweak it in `env.js`
-        process.env.NODE_PATH ? process.env.NODE_PATH.split(path.delimiter).filter(Boolean) : []
-      ),
-      // These are the reasonable defaults supported by the Node ecosystem.
-      // We also include JSX as a common component filename extension to support
-      // some tools, although we do not recommend using it, see:
-      // https://github.com/facebookincubator/create-react-app/issues/290
-      // `web` extension prefixes have been added for better support
-      // for React Native Web.
-      extensions: ['.web.js', '.js', '.json', '.web.jsx', '.jsx'],
-      alias: {
-        'components': path.join(sourceFolder, path.resolve(`components/index.js`)),
-        'assets': path.join(sourceFolder, path.resolve(`assets/`)),
+    sourceMap: false,
+  }));
+}
+
+plugins.push(new ExtractTextPlugin({
+  filename: '[name].min.css',
+  allChunks: true,
+  ignoreOrder: true,
+}));
+
+if (exports.useMoment) {
+  plugins.push(new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/));
+}
+const chunksArray = [];
+if (exports.chunks && exports.chunks instanceof Array) {
+  plugin.push(new webpack.optimize.CommonsChunkPlugin({
+    names: exports.chunks,
+  }));
+  chunksArray = exports.chunks;
+}
+if (config.htmlPath) {
+  const htmlPath = path.join(baseFolder, config.htmlPath);
+  Object.keys(entry).forEach(_key => {
+    const p = new HtmlWebpackPlugin({
+      filename: `${_key}.html`,
+      chunks: chunksArray.concat([_key]),
+      inject: true,
+      template: htmlPath,
+    });
+
+    if (!isDev) {
+      p.minify = {
+        removeComments: true,
+        collapseWhitespace: true,
+        removeRedundantAttributes: true,
+        useShortDoctype: true,
+        removeEmptyAttributes: true,
+        removeStyleLinkTypeAttributes: true,
+        keepClosingSlash: true,
+        minifyJS: true,
+        minifyCSS: true,
+        minifyURLs: true,
       }
-    },
-    module: {
-      rules,
-      /*
-    [
-      {
-      test: /\.js(.*)$/,
-      exclude: /node_modules|moment/,
-      use: {
-        loader: require.resolve('babel-loader'),
-        options: {
-          presets: [require.resolve('babel-preset-latest'), require.resolve('babel-preset-react')],
-          plugins: [require.resolve('babel-plugin-transform-runtime')],
-        },
-      },
-    }, {
-      loader: 'json-loader',
-      test: /\.json$/
-    }, {
-      test: /\.less$/,
-      loaders: ExtractTextPlugin.extract({
+    }
+
+    plugins.push(p);
+  });
+}
+
+const outputFolder = path.join(baseFolder, (config.targetFolder || 'dist'));
+
+/**
+ * Build your webpack
+ */
+const webpackOpt = {
+  // In production, we only want to load the polyfills and the app code.
+  bail: true,
+  entry,
+  output: {
+    // The build folder.
+    path: outputFolder,
+    // Generated JS file names (with nested folders).
+    // There will be one main bundle, and one file per asynchronous chunk.
+    // We don't currently advertise code splitting but Webpack supports it.
+    filename: './js/[name].[chunkhash:8].min.js',
+    chunkFilename: './js/[name].[chunkhash:8].chunk.min.js',
+    // We inferred the "public path" (such as / or /my-project) from homepage.
+    publicPath: config.publicPath || '/',
+  },
+  resolve: {
+    // This allows you to set a fallback for where Webpack should look for modules.
+    // We placed these paths second because we want `node_modules` to "win"
+    // if there are any conflicts. This matches Node resolution mechanism.
+    // https://github.com/facebookincubator/create-react-app/issues/253
+    modules: [sourceFolder, path.join(baseFolder, 'node_modules'), path.join(__dirname, '..', 'node_modues'), path.join(baseFolder, 'plugins'), path.join(baseFolder, 'config')].concat(
+      // It is guaranteed to exist because we tweak it in `env.js`
+      process.env.NODE_PATH ? process.env.NODE_PATH.split(path.delimiter).filter(Boolean) : []
+    ),
+    // These are the reasonable defaults supported by the Node ecosystem.
+    // We also include JSX as a common component filename extension to support
+    // some tools, although we do not recommend using it, see:
+    // https://github.com/facebookincubator/create-react-app/issues/290
+    // `web` extension prefixes have been added for better support
+    // for React Native Web.
+    extensions: ['.web.js', '.js', '.json', '.web.jsx', '.jsx'],
+    alias: {
+      'components': path.join(sourceFolder, path.resolve(`components/index.js`)),
+      'assets': path.join(sourceFolder, path.resolve(`assets/`)),
+    }
+  },
+  module: {
+    rules,
+  },
+  plugins,
+};
+
+const formatSize = size => {
+  if (size <= 0) {
+    return "0 bytes";
+  }
+
+  const abbreviations = ["bytes", "kB", "MB", "GB"];
+  const index = Math.floor(Math.log(size) / Math.log(1000));
+
+  return `${+(size / Math.pow(1000, index)).toPrecision(3)} ${abbreviations[index]}`;
+};
+
+const onComplete = (err, stats) => {
+  if (err) {
+    console.log(err);
+  } else {
+    const opt = {
+      colors: colorSupported,
+    }
+    const s = stats.toJson(opt);
+    s.errors.forEach(e => process.stderr.write(render('red', e)));
+    s.warnings.forEach(e => process.stderr.write(render('yellow', e)));
+    process.stderr.write('\n');
+    if (stats.hasErrors()) {
+      if (!isDev) {
+        process.stderr.write(render('red', 'Compile with errors!'));
+        setImmediate(() => process.exit(1));
+      }
+    } else {
+      process.stderr.write(render('white', `Hash: ${s.hash}\nTime: ${s.time}ms\n`));
+      const data = [
+        ["Asset", "Size", "Chunks", "", "", "Chunk Names"]
+      ];
+      // Print the result:
+      s.assets.forEach(asset => {
+        data.push([
+          asset.name.replace(/.+\//, ''),
+          formatSize(asset.size),
+          asset.chunks.join(', '),
+          asset.emitted ? "[emitted]" : "",
+          asset.isOverSizeLimit ? "[big]" : "",
+          asset.chunkNames.join(", "),
+        ]);
+      });
+
+      let maxLength = data[0].map(v => 0);
+      data.forEach(asset => {
+        asset.forEach((a, index) => {
+          const length = a.length;
+          maxLength[index] = Math.max(maxLength[index], length);
+        });
+      });
+
+      data.forEach(asset => {
+        const str = asset.map((a, index) => {
+          const length = a.length;
+          let add = maxLength[index] - length;
+          return `${a}${Buffer.alloc(add, ' ').toString()}`;
+        }).join(' ');
+
+        process.stderr.write(render('green', `${str}\n`));
+      });
+      process.stderr.write(render('green', 'Build Done!\n'));
+    }
+  }
+}
+
+try {
+  if (isDev) {
+    if (config.i18n && config.i18n.languages && config.i18n.defaultLanguage) {
+      webpackOpt.module.rules.push({
+        test: /lang.json$/,
         use: [{
-          loader: require.resolve('css-loader'),
-          options: {
-            sourceMap: true,
-            minimize: false
-          }
+          loader: require.resolve('json-loader'),
         }, {
-          loader: require.resolve('postcss-loader'),
-          options: {
-            sourceMap: true,
-            minimize: false,
-            plugins: () => {
-              return [autoprefixer];
-            }
-          }
-        }, {
-          loader: require.resolve('less-loader'),
-          options: {
-            sourceMap: true,
-            minimize: false,
-            sourceMap: true
-          }
+          loader: require.resolve('lang-loader'),
+          query: {
+            language: config.i18n.defaultLanguage,
+          },
         }]
-      })
-    }, {
-      test: /\.css$/,
-      loader: ExtractTextPlugin.extract({
-        "use": [{
-          "loader": "css-loader",
-          "options": {
-            "sourceMap": true,
-            "minimize": false
-          }
-        }, {
-          "loader": "postcss-loader",
-          "options": {
-            "plugins": () => {
-              return [autoprefixer];
-            }
-          }
-        }]
-      })
+      });
     }
-  ],
-    */
-    },
-    plugins,
-    /*
-    plugins: [
-      new CleanPlugin(['static'], {
-        root: __dirname
-      }),
-      new CopyPlugin([{
-        from: 'node_modules/antd/dist/antd.min.css*',
-        to: path.join(__dirname, 'static', '[name].[ext]'),
-        context: __dirname,
-      }, {
-        from: 'src/statics/*',
-        to: path.join(__dirname, 'static', '[name].[ext]'),
-        context: __dirname,
-      }]),
-      new ExtractTextPlugin({
-        filename: '[name].min.css',
-        allChunks: true
-      }),
-      new webpack.DefinePlugin({
-        'process.env': {
-          NODE_ENV: JSON.stringify('production')
-        }
-      }),
-      new webpack.optimize.UglifyJsPlugin({
-        sourceMap: true,
-        compress: {
-          warnings: false,
-          drop_console: false,
-        }
-      }),
-    ]
-      */
-  };
+    const compiler = webpack(webpackOpt);
+    devServer(config, webpackOpt);
 
-  const formatSize = size => {
-    if (size <= 0) {
-      return "0 bytes";
+    const watching = compiler.watch({}, onComplete);
+
+    process.stderr.write(render('green', 'Watching Started!\n'));
+  } else {
+
+    const doCompile = (opt) => {
+      return new Promise((resolve, reject) => {
+        const compiler = webpack(opt);
+        compiler.run((err, stats) => {
+          onComplete(err, stats);
+
+          if (err || stats.hasErrors()) {
+            reject();
+          } else {
+            resolve();
+          }
+        });
+        const ProgressPlugin = require('webpack/lib/ProgressPlugin.js');
+        compiler.apply(new ProgressPlugin({
+          profile: true
+        }));
+      });
     }
 
-    const abbreviations = ["bytes", "kB", "MB", "GB"];
-    const index = Math.floor(Math.log(size) / Math.log(1000));
+    if (config.i18n && config.i18n.languages) {
 
-    return `${+(size / Math.pow(1000, index)).toPrecision(3)} ${abbreviations[index]}`;
-  };
+      const allDone = [];
 
-  const onComplete = (err, stats) => {
-    if (err) {
-      console.log(err);
+      config.i18n.languages.forEach(lang => {
+        // Loop to set the language.
+        let found = null;
+
+        const clone = (obj) => {
+          if (typeof obj === 'object') {
+            if (obj instanceof RegExp) {
+              return obj;
+            }
+            const res = (obj instanceof Array)?[]:{};
+
+            if (obj.__proto__ && !(obj instanceof Array)) {
+              res.__proto__ = obj.__proto__;
+            }
+            Object.keys(obj).forEach(p => {
+              res[p] = clone(obj[p]);
+            });
+            return res;
+          }
+          return obj;
+        }
+        const opt = clone(webpackOpt);
+        // const opt = {};
+
+        opt.module.rules.push({
+          test: /lang.json$/,
+          use: [{
+            loader: require.resolve('json-loader'),
+          }, {
+            loader: require.resolve('lang-loader'),
+            query: {
+              language: lang,
+            },
+          }],
+        });
+        opt.output.filename = `./js/[name].[chunkhash:8].min.js`;
+        opt.output.chunkFilename = `./js/[name].[chunkhash:8].chunk.min.js`;
+        opt.output.path = `${opt.output.path}/${lang}`
+
+        allDone.push(doCompile(opt));
+      });
+
+      const p = Promise.all(allDone);
+
+      p.then(() => console.log('Done'));
+      p.catch(console.log);
     } else {
-      const opt = {
-        colors: colorSupported,
-      }
-      const s = stats.toJson(opt);
-      s.errors.forEach(e => process.stderr.write(render('red', e)));
-      s.warnings.forEach(e => process.stderr.write(render('yellow', e)));
-      process.stderr.write('\n');
-      if (stats.hasErrors()) {
-        if (!isDev) {
-          process.stderr.write(render('red', 'Compile with errors!'));
-          setImmediate(() => process.exit(1));
-        }
-      } else {
-        process.stderr.write(render('white', `Hash: ${s.hash}\nTime: ${s.time}ms\n`));
-        const data = [
-          ["Asset", "Size", "Chunks", "", "", "Chunk Names"]
-        ];
-        // Print the result:
-        s.assets.forEach(asset => {
-          data.push([
-            asset.name.replace(/.+\//, ''),
-            formatSize(asset.size),
-            asset.chunks.join(', '),
-            asset.emitted ? "[emitted]" : "",
-            asset.isOverSizeLimit ? "[big]" : "",
-            asset.chunkNames.join(", "),
-          ]);
-        });
-
-        let maxLength = data[0].map(v => 0);
-        data.forEach(asset => {
-          asset.forEach((a, index) => {
-            const length = a.length;
-            maxLength[index] = Math.max(maxLength[index], length);
-          });
-        });
-
-        data.forEach(asset => {
-          const str = asset.map((a, index) => {
-            const length = a.length;
-            let add = maxLength[index] - length;
-            return `${a}${Buffer.alloc(add, ' ').toString()}`;
-          }).join(' ');
-
-          process.stderr.write(render('green', `${str}\n`));
-        });
-        process.stderr.write(render('green', 'Build Done!\n'));
-      }
+      const p = doCompile(webpackOpt);
+      p.then(() => console.log('Done'));
+      p.catch(console.log);
     }
   }
-  const compiler = webpack(webpackOpt);
-
-  try {
-    if (isDev) {
-      devServer(config, webpackOpt);
-
-      const watching = compiler.watch({}, onComplete);
-
-      process.stderr.write(render('green', 'Watching Started!\n'));
-
-    } else {
-      compiler.run(onComplete);
-    }
-    const ProgressPlugin = require('webpack/lib/ProgressPlugin.js');
-    compiler.apply(new ProgressPlugin({
-      profile: true
-    }));
-  } catch (e) {
-    console.log(e);
-  }
+} catch (e) {
+  console.log(e);
+}

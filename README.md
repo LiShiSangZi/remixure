@@ -73,6 +73,11 @@ exports.compiledNodeModules = ['YourModuleCode']; // If you want to build some n
 
 exports.ignoreCSSModule = ['YourCSSModule']; // If you want want any projects like antd ignore CSS module. Put it here.
 
+exports.i18n = {
+  "languages": ["en", "zh-CN"],
+  "defaultLanguage": "zh-CN",  // This is only used in dev mode.
+};  // If you want to use multi-language. We can use the lang-loader for you.
+
 ```
 
 If you want to use the dev mode. There are some addional configurations under config/config.dev.js:
@@ -83,4 +88,6 @@ exports.devServer = {
   "HOST": "0.0.0.0", // Optional: Default value is 0.0.0.0.
   "PORT": "8888", // Optional: Default value is 8888.
 }; // If you want to enable the devServer.
+
+exports.i18n.defaultLanguage = 'zh-CN'; // For dev mode, we can only compile one language for one time. So we need to speicific the default language.
 ```
