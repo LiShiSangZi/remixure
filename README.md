@@ -69,7 +69,9 @@ exports.htmlPath = 'public/index.html'; // If you want to pack index.html with t
 
 exports.cleanBeforeBuild = true; // If you want to clean the build folder before job start.
 
-exports.compiledNodeModules = ['YourModuleCode']; // If you want to build some node_module folders using babel loader. Put it here.
+exports.compiledNodeModules = ['YourModuleCode']; // If you want to build some node_module folders using babel loader or less loader. Put it here.
+
+exports.ignoreCSSModule = ['YourCSSModule']; // If you want want any projects like antd ignore CSS module. Put it here.
 
 ```
 
