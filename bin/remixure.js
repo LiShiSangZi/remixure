@@ -264,6 +264,15 @@ rules.push({
   },
 });
 
+rule.push({
+  test: [/\.woff$/, /\.svg$/, /\.eot?g$/, /\.ttf$/],
+  loader: require.resolve('url-loader'),
+  options: {
+    limit: 10,
+    name: 'static/font/[name].[hash:8].[ext]',
+  },
+});
+
 /** Init the plugin. */
 const plugins = [];
 
