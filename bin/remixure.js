@@ -258,7 +258,7 @@ if (config.less) {
 // smaller than specified limit in bytes as data URLs to avoid requests.
 // A missing `test` is equivalent to a match.
 rules.push({
-  test: [/\.bmp$/, /\.gif$/, /\.jpe?g$/, /\.png$/],
+  test: /\.(bmp|gif|jpeg|jpg|png)$/,
   loader: require.resolve('url-loader'),
   options: {
     limit: 10000,
@@ -266,8 +266,8 @@ rules.push({
   },
 });
 
-rule.push({
-  test: [/\.woff$/, /\.svg$/, /\.eot?g$/, /\.ttf$/],
+rules.push({
+  test: /\.(woff|svg|eot|ttf|eog)$/,
   loader: require.resolve('url-loader'),
   options: {
     limit: 10,
