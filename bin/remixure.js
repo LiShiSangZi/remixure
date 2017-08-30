@@ -246,7 +246,7 @@ if (config.less) {
           {
             loader: require.resolve('less-loader'),
             options: {
-              theme: config.antd.theme,
+              modifyVars: {theme: config.antd.theme},
             },
           },
         ],
