@@ -138,7 +138,7 @@ const babelLoader = {
   use: babelConfig,
 };
 
-if (config.enableAntD) {
+if (config.antd) {
   babelLoader.use.options.plugins.push([require.resolve('babel-plugin-import'), [{
     libraryName: "antd",
     style: true
@@ -207,7 +207,7 @@ if (config.less) {
         }
       }
 
-      if (config.enableAntD && /antd/.test(path)) {
+      if (config.antd && /antd/.test(path)) {
         return true;
       }
 
@@ -219,9 +219,9 @@ if (config.less) {
     }),
   });
 
-  if (config.enableAntD && config.less.enableCSSModule) {
+  if (config.antd && config.less.enableCSSModule) {
 
-    if (config.enableAntD && /antd/.test(path)) {
+    if (config.antd && /antd/.test(path)) {
       return true;
     }
 
@@ -245,7 +245,9 @@ if (config.less) {
           },
           {
             loader: require.resolve('less-loader'),
-            options: {},
+            options: {
+              theme: config.antd.theme,
+            },
           },
         ],
       }),

@@ -57,7 +57,9 @@ exports.entry = {
   
 }
 
-exports.enableAntD = true;  // If you are using antd.
+exports.antd = { // If you are using antd.
+  theme: 'YOUR THEME HERE', // If you are using ant theme.
+};
 
 exports.ignoreUglify = true; // You can ignore the uglify process by setting this to true.
 
