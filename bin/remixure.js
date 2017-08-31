@@ -216,6 +216,7 @@ if (config.less) {
       use,
     }),
   });
+
   if (config.antd && config.less.enableCSSModule) {
 
     if (config.antd && /antd/.test(path)) {
@@ -243,9 +244,7 @@ if (config.less) {
           {
             loader: require.resolve('less-loader'),
             options: {
-              modifyVars: {
-                theme: config.antd.theme,
-              },
+              modifyVars: config.antd.theme,
             },
           },
         ],
