@@ -111,11 +111,7 @@ const babelConfig = {
     presets: [
       require.resolve('babel-preset-react-app'),
     ],
-    plugins: [
-      require.resolve('babel-plugin-transform-runtime'),
-      require.resolve('babel-plugin-syntax-dynamic-import'),
-      require.resolve('babel-plugin-dynamic-import-node'),
-    ],
+    plugins: [],
     compact: true,
   },
 };
@@ -227,7 +223,6 @@ if (config.less) {
     if (config.ignoreCSSModule) {
       r = r.concat(config.ignoreCSSModule);
     }
-
     rules.push({
       test: /\.less$/,
       include: new RegExp(r.join('|')),
@@ -268,7 +263,7 @@ rules.push({
   test: /\.(woff|svg|eot|ttf|eog)$/,
   loader: require.resolve('url-loader'),
   options: {
-    limit: 10,
+    limit: 10000,
     name: 'static/font/[name].[hash:8].[ext]',
   },
 });
