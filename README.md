@@ -93,3 +93,12 @@ exports.devServer = {
 
 exports.i18n.defaultLanguage = 'zh-CN'; // For dev mode, we can only compile one language for one time. So we need to speicific the default language.
 ```
+
+## Read language configuration from JS code
+In your HTML template, put the code like this:
+```html
+<script>
+  var language = '%language%';
+</script>
+```
+Then you can use this in your code now.

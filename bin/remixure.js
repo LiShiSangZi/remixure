@@ -6,6 +6,7 @@ const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const chalk = require('chalk');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CleanPlugin = require('clean-webpack-plugin');
+const InterpolateHtmlPlugin = require('react-dev-utils/InterpolateHtmlPlugin');
 
 const ModuleScopePlugin = require('react-dev-utils/ModuleScopePlugin');
 
@@ -475,6 +476,12 @@ try {
           loader: require.resolve('json-loader'),
         }]
       });
+
+      webpackOpt.plugins.push(
+        new InterpolateHtmlPlugin({
+          language: config.i18n.defaultLanguage,
+        })
+      );
     }
     const compiler = webpack(webpackOpt);
     devServer(config, webpackOpt);
@@ -542,8 +549,12 @@ try {
         });
         opt.output.filename = `./js/[name].[chunkhash:8].min.js`;
         opt.output.chunkFilename = `./js/[name].[chunkhash:8].chunk.min.js`;
-        opt.output.path = `${opt.output.path}/${lang}`
-
+        opt.output.path = `${opt.output.path}/${lang}`;
+        opt.plugins.push(
+          new InterpolateHtmlPlugin({
+            language: lang,
+          })
+        );
         allDone.push(doCompile(opt));
       });
 
