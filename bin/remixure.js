@@ -263,7 +263,7 @@ rules.push({
   test: /\.(html)$/,
   loader: require.resolve('url-loader'),
   exclude: (path) => {
-    const public = config.publicPath || '/';
+    const public = config.htmlPath || '/index.html';
     const regExp = new RegExp(public);
     return regExp.test(path);
   },
