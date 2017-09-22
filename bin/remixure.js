@@ -259,6 +259,14 @@ rules.push({
     name: 'static/media/[name].[hash:8].[ext]',
   },
 });
+rules.push({
+  test: /\.(html)$/,
+  loader: require.resolve('url-loader'),
+  options: {
+    limit: 100,
+    name: 'static/[name].[hash:8].[ext]',
+  },
+});
 
 rules.push({
   test: /\.(woff|svg|eot|ttf|eog)$/,
