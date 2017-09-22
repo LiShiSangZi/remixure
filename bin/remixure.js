@@ -264,7 +264,7 @@ rules.push({
   loader: require.resolve('url-loader'),
   options: {
     limit: 100,
-    name: 'static/[name].[hash:8].[ext]',
+    name: 'static/html/[name].[hash:8].[ext]',
   },
 });
 
