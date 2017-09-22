@@ -262,6 +262,11 @@ rules.push({
 rules.push({
   test: /\.(html)$/,
   loader: require.resolve('url-loader'),
+  exclude: (path) => {
+    const public = config.publicPath || '/';
+    const regExp = new RegExp(public);
+    return regExp.test(path);
+  },
   options: {
     limit: 100,
     name: 'static/html/[name].[hash:8].[ext]',
