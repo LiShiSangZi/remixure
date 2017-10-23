@@ -359,7 +359,7 @@ if (config.htmlPath) {
 }
 
 const outputFolder = path.join(baseFolder, (config.targetFolder || 'dist'));
-
+const fileName = (isDev) ? './js/[name].min.js' : './js/[name].[chunkhash:8].min.js';
 /**
  * Build your webpack
  */
