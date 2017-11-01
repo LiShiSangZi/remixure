@@ -100,6 +100,13 @@ if (Object.keys(entry).length < 1) {
   setImmediate(process.exit(1));
   return;
 }
+if(Object.keys(entry).some(_key => _key === 'polyfills')) {
+  process.stderr.write(render('red', `"polyfills" entry already exists.\n`));
+
+  setImmediate(process.exit(1));
+  return;
+}
+
 let includeModules = [];
 if (config.compiledNodeModules) {
   includeModules = config.compiledNodeModules.map(m =>
@@ -366,7 +373,7 @@ const fileName = (isDev) ? './js/[name].min.js' : './js/[name].[chunkhash:8].min
 const webpackOpt = {
   // In production, we only want to load the polyfills and the app code.
   bail: true,
-  entry,
+  entry: Object.assign(entry, {polyfills: require.resolve('./polyfills')}),
   output: {
     // The build folder.
     path: outputFolder,
