@@ -83,7 +83,7 @@ if (!process.env.BABEL_ENV) {
 }
 
 /** webpack entry list. */
-const entry = {};
+let entry = {};
 if (config.entry && config.entry.entries) {
   entry = config.entry.entries;
 } else {
@@ -367,6 +367,7 @@ if (config.htmlPath) {
 
 const outputFolder = path.join(baseFolder, (config.targetFolder || 'dist'));
 const fileName = (isDev) ? './js/[name].min.js' : './js/[name].[chunkhash:8].min.js';
+const alias = config.alias || {};
 /**
  * Build your webpack
  */
@@ -404,6 +405,7 @@ const webpackOpt = {
     alias: {
       'components': path.join(sourceFolder, path.resolve(`components/index.js`)),
       'assets': path.join(sourceFolder, path.resolve(`assets/`)),
+      ...alias,
     }
   },
   module: {
