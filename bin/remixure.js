@@ -193,9 +193,11 @@ if (config.less) {
     use[0].options.importLoaders++;
   }
 
+  const lessOpt = config.less.options || {};
+
   use.push({
     loader: require.resolve('less-loader'),
-    options: {},
+    options: {...lessOpt},
   });
 
   rules.push({

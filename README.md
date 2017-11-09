@@ -49,6 +49,9 @@ exports.less = {
   enablePostCSS: true,
   // Exclude folder. node_modules is the default folder. Do not need to add it.
   exclude: [/iconfont/],
+  options: {
+    modifyVars: "green",  // Customize options for less.
+  }
 }
 exports.entry = {
   // This is the entry file configuration. 
