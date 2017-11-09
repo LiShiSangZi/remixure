@@ -92,6 +92,12 @@ exports.devServer = {
 }; // If you want to enable the devServer.
 
 exports.i18n.defaultLanguage = 'zh-CN'; // For dev mode, we can only compile one language for one time. So we need to speicific the default language.
+
+exports.enableSourceMap = true; // Make the source map avaiable even dev is false.
+
+exports.disablePolyfillAssign = true; // This will not add Object.assign polyfill.
+
+exports.ignoreNameHash = true; // This will not hash your output file name even in production mode.
 ```
 
 ## Read language configuration from JS code

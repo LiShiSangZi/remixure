@@ -100,7 +100,7 @@ if (Object.keys(entry).length < 1) {
   setImmediate(process.exit(1));
   return;
 }
-if(Object.keys(entry).some(_key => _key === 'polyfills')) {
+if (Object.keys(entry).some(_key => _key === 'polyfills')) {
   process.stderr.write(render('red', `"polyfills" entry already exists.\n`));
 
   setImmediate(process.exit(1));
@@ -155,7 +155,7 @@ if (config.less) {
     loader: require.resolve('css-loader'),
     options: {
       importLoaders: 1,
-      sourceMap: isDev,
+      sourceMap: isDev || !!config.enableSourceMap,
       minimize: !isDev,
       modules: config.less.enableCSSModule,
       localIdentName: config.less.enableCSSModule ? '[name]__[local]___[hash:base64:5]' : null,
@@ -240,7 +240,7 @@ if (config.less) {
             loader: require.resolve('css-loader'),
             options: {
               importLoaders: 3,
-              sourceMap: isDev,
+              sourceMap: isDev || !!config.enableSourceMap,
               minimize: !isDev,
             }
           },
@@ -317,7 +317,7 @@ if (!isDev && !config.ignoreUglify) {
       // https://github.com/facebookincubator/create-react-app/issues/2488
       ascii_only: true,
     },
-    sourceMap: false,
+    sourceMap: !!config.enableSourceMap,
   }));
 }
 
@@ -367,23 +367,36 @@ if (config.htmlPath) {
 }
 
 const outputFolder = path.join(baseFolder, (config.targetFolder || 'dist'));
-const fileName = (isDev) ? './js/[name].min.js' : './js/[name].[chunkhash:8].min.js';
+let filename = './js/[name].[chunkhash:8].min.js';
+let chunkFilename = './js/[name].[chunkhash:8].chunk.min.js';
+if (isDev || !!config.ignoreNameHash) {
+  filename = './js/[name].min.js';
+  chunkFilename = './js/[name].chunk.min.js';
+}
+const fileName = (isDev || !!config.ignoreNameHash) ? './js/[name].min.js' : './js/[name].[chunkhash:8].min.js';
 const alias = config.alias || {};
+
+if (!config.disablePolyfillAssign) {
+  entry = Object.assign(entry, {
+    polyfills: require.resolve('./polyfills')
+  });
+}
+
 /**
  * Build your webpack
  */
 const webpackOpt = {
   // In production, we only want to load the polyfills and the app code.
   bail: true,
-  entry: Object.assign(entry, {polyfills: require.resolve('./polyfills')}),
+  entry,
   output: {
     // The build folder.
     path: outputFolder,
     // Generated JS file names (with nested folders).
     // There will be one main bundle, and one file per asynchronous chunk.
     // We don't currently advertise code splitting but Webpack supports it.
-    filename: './js/[name].[chunkhash:8].min.js',
-    chunkFilename: './js/[name].[chunkhash:8].chunk.min.js',
+    filename,
+    chunkFilename,
     // We inferred the "public path" (such as / or /my-project) from homepage.
     publicPath: config.publicPath || '/',
   },
@@ -415,7 +428,7 @@ const webpackOpt = {
   plugins,
 };
 
-if (isDev) {
+if (isDev || config.enableSourceMap) {
   webpackOpt.devtool = 'source-map';
 }
 
@@ -570,8 +583,8 @@ try {
             loader: require.resolve('json-loader'),
           }],
         });
-        opt.output.filename = `./js/[name].[chunkhash:8].min.js`;
-        opt.output.chunkFilename = `./js/[name].[chunkhash:8].chunk.min.js`;
+        opt.output.filename = filename;
+        opt.output.chunkFilename = chunkFilename;
         opt.output.path = `${opt.output.path}/${lang}`;
         opt.plugins.push(
           new InterpolateHtmlPlugin({
