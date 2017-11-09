@@ -197,7 +197,8 @@ if (config.less) {
 
   use.push({
     loader: require.resolve('less-loader'),
-    options: {...lessOpt},
+    options: { ...lessOpt
+    },
   });
 
   rules.push({
@@ -515,6 +516,10 @@ try {
         }]
       });
 
+      Object.keys(webpackOpt.resolve.alias).forEach(k => {
+        webpackOpt.resolve.alias[k] = webpackOpt.resolve.alias[k].replace('${lang}', config.i18n.defaultLanguage);
+      });
+
       webpackOpt.plugins.push(
         new InterpolateHtmlPlugin({
           language: config.i18n.defaultLanguage,
@@ -593,6 +598,10 @@ try {
             language: lang,
           })
         );
+        Object.keys(opt.resolve.alias).forEach(k => {
+          opt.resolve.alias[k] = opt.resolve.alias[k].replace('${lang}', lang);
+        });
+
         allDone.push(doCompile(opt));
       });
 
