@@ -330,8 +330,12 @@ plugins.push(new ExtractTextPlugin({
   ignoreOrder: true,
 }));
 
-if (exports.useMoment) {
+if (config.useMoment) {
   plugins.push(new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/));
+}
+
+if (config.addtionalPlugins) {
+  plugins = plugins.concat(config.addtionalPlugins);
 }
 const chunksArray = [];
 if (exports.chunks && exports.chunks instanceof Array) {

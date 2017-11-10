@@ -83,6 +83,8 @@ exports.i18n = {
   "defaultLanguage": "zh-CN",  // This is only used in dev mode.
 };  // If you want to use multi-language. We can use the lang-loader for you.
 
+exports.addtionalPlugins = [...]; // Your plugin in here.
+
 ```
 
 If you want to use the dev mode. There are some addional configurations under config/config.dev.js:
