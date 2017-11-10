@@ -547,7 +547,7 @@ try {
     const doCompile = (opt, lang) => {
       return new Promise((resolve, reject) => {
 
-        let fopt = webpackOpt;
+        let fopt = opt;
         if (typeof config.beforeBuildHook === 'function') {
           fopt = config.beforeBuildHook(fopt, lang);
         }
