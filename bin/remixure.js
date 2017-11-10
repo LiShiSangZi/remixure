@@ -507,7 +507,9 @@ const onComplete = (err, stats) => {
 
 try {
   if (isDev) {
+    let defaultLanguage;
     if (config.i18n && config.i18n.languages && config.i18n.defaultLanguage) {
+      defaultLanguage = config.i18n.defaultLanguage;
       webpackOpt.module.rules.push({
         test: /lang.json$/,
         use: [{
@@ -530,7 +532,11 @@ try {
         })
       );
     }
-    const compiler = webpack(webpackOpt);
+    let fopt = webpackOpt;
+    if (typeof config.beforeBuildHook === 'function') {
+      fopt = config.beforeBuildHook(fopt, defaultLanguage);
+    }
+    const compiler = webpack(fopt);
     devServer(config, webpackOpt);
 
     const watching = compiler.watch({}, onComplete);
@@ -538,9 +544,14 @@ try {
     process.stderr.write(render('green', 'Watching Started!\n'));
   } else {
 
-    const doCompile = (opt) => {
+    const doCompile = (opt, lang) => {
       return new Promise((resolve, reject) => {
-        const compiler = webpack(opt);
+
+        let fopt = webpackOpt;
+        if (typeof config.beforeBuildHook === 'function') {
+          fopt = config.beforeBuildHook(fopt, lang);
+        }
+        const compiler = webpack(fopt);
         compiler.run((err, stats) => {
           onComplete(err, stats);
 
@@ -606,7 +617,7 @@ try {
           opt.resolve.alias[k] = opt.resolve.alias[k].replace('${lang}', lang);
         });
 
-        allDone.push(doCompile(opt));
+        allDone.push(doCompile(opt, lang));
       });
 
       const p = Promise.all(allDone);
