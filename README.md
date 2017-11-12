@@ -17,7 +17,7 @@ yarn add remixure --dev
 1. In your project package.json, add the content:
 ```json
 "scripts": {
-  "production": "remixure build --env=prod",
+  "build": "remixure build --env=prod",
   "dev": "remixure build --env=dev"
 }
 ```
