@@ -533,7 +533,7 @@ try {
       );
     }
     let fopt = webpackOpt;
-    fopt.output.path = `${fopt.output.path}/${lang}`;
+    fopt.output.path = `${fopt.output.path}/${defaultLanguage}`;
     if (typeof config.beforeBuildHook === 'function') {
       fopt = config.beforeBuildHook(fopt, defaultLanguage);
     }
