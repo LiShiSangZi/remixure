@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="0.1.0"></a>
+# [0.1.0](https://github.com/LiShiSangZi/remixure/compare/v0.0.51...v0.1.0) (2017-11-13)
+
+
+
 <a name="0.0.51"></a>
 ## [0.0.51](https://github.com/LiShiSangZi/remixure/compare/v0.0.50...v0.0.51) (2017-11-12)
 
