@@ -283,13 +283,16 @@ rules.push({
   },
 });
 
+const fontSettings = config.fontSettings || {};
+
 rules.push({
   test: /\.(woff|svg|eot|ttf|eog)$/,
   loader: require.resolve('url-loader'),
   options: {
     limit: 10000,
     // Use origin name, add hashes when generating fonts
-    name: 'static/font/[name].[ext]',
+    name: '[name].[ext]',
+    ...fontSettings,
   },
 });
 
