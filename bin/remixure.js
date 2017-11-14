@@ -284,13 +284,12 @@ rules.push({
 });
 
 rules.push({
-  test: /\.(woff|svg|eot|ttf|woff2)$/,
+  test: /\.(woff|svg|eot|ttf|eog)$/,
   loader: require.resolve('url-loader'),
   options: {
     limit: 10000,
     // Use origin name, add hashes when generating fonts
-    name: '[name].[ext]',
-    useRelativePath: true,
+    name: 'static/font/[name].[ext]',
   },
 });
 
@@ -542,13 +541,6 @@ try {
     devServer(config, webpackOpt);
 
     const watching = compiler.watch({}, onComplete);
-
-    compiler.plugin('invalid', (compilation, callback) => {
-      process.stderr.write(render('green', 'Compiling...\n'));
-      if (typeof callback === 'function') {
-        callback();
-      }
-    })
 
     process.stderr.write(render('green', 'Watching Started!\n'));
   } else {
