@@ -545,6 +545,13 @@ try {
 
     const watching = compiler.watch({}, onComplete);
 
+    compiler.plugin('invalid', (compilation, callback) => {
+      process.stderr.write(render('green', 'Compiling...\n'));
+      if (typeof callback === 'function') {
+        callback();
+      }
+    });
+
     process.stderr.write(render('green', 'Watching Started!\n'));
   } else {
 
