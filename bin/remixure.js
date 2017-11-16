@@ -589,7 +589,9 @@ try {
 
         const clone = (obj) => {
           if (typeof obj === 'object' && !(obj instanceof RegExp)) {
-
+            if (obj === null) {
+              return obj;
+            }
             const res = (obj instanceof Array) ? [] : {};
 
             if (obj.__proto__ && !(obj instanceof Array)) {
