@@ -11,6 +11,8 @@
     "node": ">=4.3.0 <5.0.0 || >=5.10"
   },
   "scripts": {
+    "build": "node scripts/convert.js",
+    "prepublishOnly": "yarn build",
     "beautify-lint": "beautify-lint \"lib/**/*.js\" \"hot/**/*.js\" \"bin/**/*.js\" \"benchmark/*.js\" \"test/*.js\"",
     "release": "standard-version"
   },
@@ -48,7 +50,10 @@
     "webpack-dev-server": "^2.7.1"
   },
   "devDependencies": {
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
+    "babel-preset-env": "^1.6.1",
     "beautify-lint": "^1.0.4",
+    "fs-extra": "^4.0.2",
     "standard-version": "^4.2.0"
   }
 }

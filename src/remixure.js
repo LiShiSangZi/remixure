@@ -1,79 +1,51 @@
 #!/usr/bin/env node
-'use strict';
 
-var _promise = require('babel-runtime/core-js/promise');
+const webpack = require('webpack');
+const autoprefixer = require('autoprefixer');
+const ExtractTextPlugin = require('extract-text-webpack-plugin');
+const chalk = require('chalk');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const CleanPlugin = require('clean-webpack-plugin');
+const InterpolateHtmlPlugin = require('react-dev-utils/InterpolateHtmlPlugin');
 
-var _promise2 = _interopRequireDefault(_promise);
+const ModuleScopePlugin = require('react-dev-utils/ModuleScopePlugin');
 
-var _extends2 = require('babel-runtime/helpers/extends');
+const path = require('path');
+const fs = require('fs');
 
-var _extends3 = _interopRequireDefault(_extends2);
+const colorSupported = require('supports-color');
 
-var _keys = require('babel-runtime/core-js/object/keys');
+const baseFolder = path.resolve('.');
+const configPath = path.join(baseFolder, 'config');
 
-var _keys2 = _interopRequireDefault(_keys);
+const devServer = require('./devServer');
 
-var _assign = require('babel-runtime/core-js/object/assign');
+let config = {};
 
-var _assign2 = _interopRequireDefault(_assign);
-
-var _setImmediate2 = require('babel-runtime/core-js/set-immediate');
-
-var _setImmediate3 = _interopRequireDefault(_setImmediate2);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-var webpack = require('webpack');
-var autoprefixer = require('autoprefixer');
-var ExtractTextPlugin = require('extract-text-webpack-plugin');
-var chalk = require('chalk');
-var HtmlWebpackPlugin = require('html-webpack-plugin');
-var CleanPlugin = require('clean-webpack-plugin');
-var InterpolateHtmlPlugin = require('react-dev-utils/InterpolateHtmlPlugin');
-
-var ModuleScopePlugin = require('react-dev-utils/ModuleScopePlugin');
-
-var path = require('path');
-var fs = require('fs');
-
-var colorSupported = require('supports-color');
-
-var baseFolder = path.resolve('.');
-var configPath = path.join(baseFolder, 'config');
-
-var devServer = require('./devServer');
-
-var config = {};
-
-var render = function render(color, content) {
+const render = (color, content) => {
   if (colorSupported) {
     return chalk[color](content);
   }
   return content;
-};
+}
 
 process.stderr.write(render('green', 'Start to do job.\n'));
 
 try {
-  var c = require(path.join(configPath, 'config.default.js'));
+  const c = require(path.join(configPath, 'config.default.js'));
   config = c;
 } catch (e) {
   process.stderr.write(render('red', 'The config file is not found! You need a config.default.js file under config folder.\n'));
 
-  (0, _setImmediate3.default)(function () {
-    return process.exit(1);
-  });
+  setImmediate(() => process.exit(1));
 }
 
-var env = null;
-var args = process.argv.filter(function (arg) {
-  return (/^\-\-(.+)\=(.*)/.test(arg)
-  );
-});
-var argObj = {};
+let env = null;
+const args = process.argv.filter(arg => /^\-\-(.+)\=(.*)/.test(arg));
+const argObj = {};
 
-args.forEach(function (v) {
-  var argv = v.replace(/^\-\-/, '').split('=');
+args.forEach(v => {
+  const argv = v.replace(/^\-\-/, '').split('=');
   if (argv.length === 2) {
     argObj[argv[0]] = argv[1];
   }
@@ -84,20 +56,22 @@ if (argObj.env) {
 }
 
 process.stderr.write(render('green', 'Read the configurations.\n'));
-var isDev = env === 'dev';
+const isDev = env === 'dev';
 
 try {
   if (!env) {
     env = fs.readFileSync(path.join(configPath, 'env'));
     env = env.toString();
   }
-  var addFileName = `config.${env}.js`;
-  var _c = require(path.join(configPath, addFileName));
-  config = (0, _assign2.default)(config, _c);
-} catch (e) {}
+  const addFileName = `config.${env}.js`;
+  const c = require(path.join(configPath, addFileName));
+  config = Object.assign(config, c);
+} catch (e) {
+
+}
 process.stderr.write(render('green', `The current enviroment is ${env}.\n`));
 
-var sourceFolder = path.join(baseFolder, config.srcFolder || 'src');
+const sourceFolder = path.join(baseFolder, (config.srcFolder || 'src'));
 
 if (!process.env.BABEL_ENV) {
   if (isDev) {
@@ -108,59 +82,52 @@ if (!process.env.BABEL_ENV) {
 }
 
 /** webpack entry list. */
-var entry = {};
+let entry = {};
 if (config.entry && config.entry.entries) {
   entry = config.entry.entries;
 } else {
-  fs.readdirSync(sourceFolder).filter(function (file) {
+  fs.readdirSync(sourceFolder).filter(file => {
     return fs.statSync(path.join(sourceFolder, file)).isFile() && /\.js(x*)$/.test(file) && (!config.entry || config.entry.exclude.indexOf(file) < 0);
-  }).forEach(function (file) {
+  }).forEach(file => {
     entry[file.replace(/\.js(x*)$/, '')] = path.join(sourceFolder, file);
   });
 }
 
-if ((0, _keys2.default)(entry).length < 1) {
+if (Object.keys(entry).length < 1) {
   process.stderr.write(render('red', `You do not have entry files under folder ${sourceFolder}.\n`));
 
-  (0, _setImmediate3.default)(function () {
-    return process.exit(1);
-  });
+  setImmediate(() => process.exit(1));
 }
-if ((0, _keys2.default)(entry).some(function (_key) {
-  return _key === 'polyfills';
-})) {
+if (Object.keys(entry).some(_key => _key === 'polyfills')) {
   process.stderr.write(render('red', `"polyfills" entry already exists.\n`));
 
-  (0, _setImmediate3.default)(function () {
-    return process.exit(1);
-  });
+  setImmediate(() => process.exit(1));
 }
 
-var includeModules = [];
+let includeModules = [];
 if (config.compiledNodeModules) {
-  includeModules = config.compiledNodeModules.map(function (m) {
-    return (
-      // path.join(sourceFolder, 'node_modules', m));
-      new RegExp(`node_modules/${m}`)
-    );
-  });
+  includeModules = config.compiledNodeModules.map(m =>
+    // path.join(sourceFolder, 'node_modules', m));
+    new RegExp(`node_modules/${m}`));
 }
-var babelConfig = {
+const babelConfig = {
   loader: require.resolve('babel-loader'),
   options: {
-    presets: [require.resolve('babel-preset-react-app')],
+    presets: [
+      require.resolve('babel-preset-react-app'),
+    ],
     plugins: [],
-    compact: true
-  }
+    compact: true,
+  },
 };
 
 // Enable babel-loader with React is default.
-var babelLoader = {
+const babelLoader = {
   test: /\.(js|jsx)$/,
   // exclude: /node_modules/,
-  exclude: function exclude(path) {
+  exclude: (path) => {
     if (/node_modules/.test(path)) {
-      for (var i = 0; i < includeModules.length; i++) {
+      for (let i = 0; i < includeModules.length; i++) {
         if (includeModules[i].test(path)) {
           return false;
         }
@@ -169,7 +136,7 @@ var babelLoader = {
     }
     return false;
   },
-  use: babelConfig
+  use: babelConfig,
 };
 
 if (config.antd) {
@@ -178,17 +145,17 @@ if (config.antd) {
     style: true
   }]]);
 }
-var rules = [babelLoader];
+const rules = [babelLoader];
 
 if (config.less) {
-  var use = [{
+  const use = [{
     loader: require.resolve('css-loader'),
     options: {
       importLoaders: 1,
       sourceMap: isDev || !!config.enableSourceMap,
       minimize: !isDev,
       modules: config.less.enableCSSModule,
-      localIdentName: config.less.enableCSSModule ? '[name]__[local]___[hash:base64:5]' : null
+      localIdentName: config.less.enableCSSModule ? '[name]__[local]___[hash:base64:5]' : null,
     }
   }];
 
@@ -199,17 +166,23 @@ if (config.less) {
         // Necessary for external CSS imports to work
         // https://github.com/facebookincubator/create-react-app/issues/2677
         ident: 'postcss',
-        plugins: function plugins() {
-          return [require('postcss-flexbugs-fixes'), autoprefixer({
-            browsers: ['>1%', 'last 4 versions', 'Firefox ESR', 'not ie < 9'],
-            flexbox: 'no-2009'
-          })];
-        }
+        plugins: () => [
+          require('postcss-flexbugs-fixes'),
+          autoprefixer({
+            browsers: [
+              '>1%',
+              'last 4 versions',
+              'Firefox ESR',
+              'not ie < 9', // React doesn't support IE8 anyway
+            ],
+            flexbox: 'no-2009',
+          }),
+        ],
       },
       options: {
         sourceMap: true,
         minimize: false,
-        plugins: function plugins() {
+        plugins: () => {
           return [autoprefixer];
         }
       }
@@ -217,19 +190,21 @@ if (config.less) {
     use[0].options.importLoaders++;
   }
 
-  var lessOpt = config.less.options || {};
+  const lessOpt = config.less.options || {};
 
   use.push({
     loader: require.resolve('less-loader'),
-    options: (0, _extends3.default)({}, lessOpt)
+    options: {
+      ...lessOpt
+    },
   });
 
   rules.push({
     test: /\.less$/,
-    exclude: function exclude(path) {
+    exclude: (path) => {
 
       if (config.ignoreCSSModule) {
-        var reg = new RegExp(config.ignoreCSSModule.join('|'));
+        const reg = new RegExp(config.ignoreCSSModule.join('|'));
         if (reg.test(path)) {
           return true;
         }
@@ -239,13 +214,12 @@ if (config.less) {
         return true;
       }
 
-      return (/node_modues/.test(path)
-      );
+      return /node_modues/.test(path);
     },
     use: ExtractTextPlugin.extract({
       fallback: require.resolve('style-loader'),
-      use
-    })
+      use,
+    }),
   });
 
   if (config.antd && config.less.enableCSSModule) {
@@ -254,7 +228,7 @@ if (config.less) {
     //   return true;
     // }
 
-    var r = ['antd'];
+    let r = ['antd'];
     if (config.ignoreCSSModule) {
       r = r.concat(config.ignoreCSSModule);
     }
@@ -264,19 +238,21 @@ if (config.less) {
       use: ExtractTextPlugin.extract({
         fallback: require.resolve('style-loader'),
         use: [{
-          loader: require.resolve('css-loader'),
-          options: {
-            importLoaders: 3,
-            sourceMap: isDev || !!config.enableSourceMap,
-            minimize: !isDev
-          }
-        }, {
-          loader: require.resolve('less-loader'),
-          options: {
-            modifyVars: config.antd.theme
-          }
-        }]
-      })
+            loader: require.resolve('css-loader'),
+            options: {
+              importLoaders: 3,
+              sourceMap: isDev || !!config.enableSourceMap,
+              minimize: !isDev,
+            }
+          },
+          {
+            loader: require.resolve('less-loader'),
+            options: {
+              modifyVars: config.antd.theme,
+            },
+          },
+        ],
+      }),
     });
   }
 }
@@ -288,42 +264,45 @@ rules.push({
   loader: require.resolve('url-loader'),
   options: {
     limit: 10000,
-    name: 'static/media/[name].[hash:8].[ext]'
-  }
+    name: 'static/media/[name].[hash:8].[ext]',
+  },
 });
 rules.push({
   test: /\.(html)$/,
   loader: require.resolve('url-loader'),
-  exclude: function exclude(path) {
-    var publicPath = config.htmlPath || '/index.html';
-    var regExp = new RegExp(publicPath);
+  exclude: (path) => {
+    const publicPath = config.htmlPath || '/index.html';
+    const regExp = new RegExp(publicPath);
     return regExp.test(path);
   },
   options: {
     limit: 100,
-    name: 'static/html/[name].[hash:8].[ext]'
-  }
+    name: 'static/html/[name].[hash:8].[ext]',
+  },
 });
 
-var fontSettings = config.fontSettings || {};
+const fontSettings = config.fontSettings || {};
 
 rules.push({
   test: /\.(woff|svg|eot|ttf|eog)$/,
   loader: require.resolve('url-loader'),
-  options: (0, _extends3.default)({
+  options: {
     limit: 10000,
     // Use origin name, add hashes when generating fonts
-    name: '[name].[ext]'
-  }, fontSettings)
+    name: '[name].[ext]',
+    ...fontSettings,
+  },
 });
 
 /** Init the plugin. */
-var plugins = [];
+let plugins = [];
 
 if (config.cleanBeforeBuild) {
-  plugins.push(new CleanPlugin([config.targetFolder || 'dist'], {
-    root: baseFolder
-  }));
+  plugins.push(
+    new CleanPlugin([config.targetFolder || 'dist'], {
+      root: baseFolder
+    })
+  );
 }
 
 if (!isDev && !config.ignoreUglify) {
@@ -334,22 +313,22 @@ if (!isDev && !config.ignoreUglify) {
       // https://github.com/facebookincubator/create-react-app/issues/2376
       // Pending further investigation:
       // https://github.com/mishoo/UglifyJS2/issues/2011
-      comparisons: false
+      comparisons: false,
     },
     output: {
       comments: false,
       // Turned on because emoji and regex is not minified properly using default
       // https://github.com/facebookincubator/create-react-app/issues/2488
-      ascii_only: true
+      ascii_only: true,
     },
-    sourceMap: !!config.enableSourceMap
+    sourceMap: !!config.enableSourceMap,
   }));
 }
 
 plugins.push(new ExtractTextPlugin({
   filename: '[name].min.css',
   allChunks: true,
-  ignoreOrder: true
+  ignoreOrder: true,
 }));
 
 if (config.useMoment) {
@@ -359,21 +338,21 @@ if (config.useMoment) {
 if (config.addtionalPlugins) {
   plugins = plugins.concat(config.addtionalPlugins);
 }
-var chunksArray = [];
+let chunksArray = [];
 if (exports.chunks && exports.chunks instanceof Array) {
   plugin.push(new webpack.optimize.CommonsChunkPlugin({
-    names: exports.chunks
+    names: exports.chunks,
   }));
   chunksArray = exports.chunks;
 }
 if (config.htmlPath) {
-  var htmlPath = path.join(baseFolder, config.htmlPath);
-  (0, _keys2.default)(entry).forEach(function (_key) {
-    var p = new HtmlWebpackPlugin({
+  const htmlPath = path.join(baseFolder, config.htmlPath);
+  Object.keys(entry).forEach(_key => {
+    const p = new HtmlWebpackPlugin({
       filename: `${_key}.html`,
       chunks: chunksArray.concat([_key]),
       inject: true,
-      template: htmlPath
+      template: htmlPath,
     });
 
     if (!isDev) {
@@ -387,26 +366,26 @@ if (config.htmlPath) {
         keepClosingSlash: true,
         minifyJS: true,
         minifyCSS: true,
-        minifyURLs: true
-      };
+        minifyURLs: true,
+      }
     }
 
     plugins.push(p);
   });
 }
 
-var outputFolder = path.join(baseFolder, config.targetFolder || 'dist');
-var filename = './js/[name].[chunkhash:8].min.js';
-var chunkFilename = './js/[name].[chunkhash:8].chunk.min.js';
+const outputFolder = path.join(baseFolder, (config.targetFolder || 'dist'));
+let filename = './js/[name].[chunkhash:8].min.js';
+let chunkFilename = './js/[name].[chunkhash:8].chunk.min.js';
 if (isDev || !!config.ignoreNameHash) {
   filename = './js/[name].min.js';
   chunkFilename = './js/[name].chunk.min.js';
 }
-var fileName = isDev || !!config.ignoreNameHash ? './js/[name].min.js' : './js/[name].[chunkhash:8].min.js';
-var alias = config.alias || {};
+const fileName = (isDev || !!config.ignoreNameHash) ? './js/[name].min.js' : './js/[name].[chunkhash:8].min.js';
+const alias = config.alias || {};
 
 if (!config.disablePolyfillAssign) {
-  entry = (0, _assign2.default)(entry, {
+  entry = Object.assign(entry, {
     polyfills: require.resolve('./polyfills')
   });
 }
@@ -414,7 +393,7 @@ if (!config.disablePolyfillAssign) {
 /**
  * Build your webpack
  */
-var webpackOpt = {
+const webpackOpt = {
   // In production, we only want to load the polyfills and the app code.
   bail: true,
   entry,
@@ -427,7 +406,7 @@ var webpackOpt = {
     filename,
     chunkFilename,
     // We inferred the "public path" (such as / or /my-project) from homepage.
-    publicPath: config.publicPath || '/'
+    publicPath: config.publicPath || '/',
   },
   resolve: {
     // This allows you to set a fallback for where Webpack should look for modules.
@@ -435,8 +414,9 @@ var webpackOpt = {
     // if there are any conflicts. This matches Node resolution mechanism.
     // https://github.com/facebookincubator/create-react-app/issues/253
     modules: [sourceFolder, path.join(baseFolder, 'node_modules'), path.join(__dirname, '..', 'node_modues'), path.join(baseFolder, 'plugins'), path.join(baseFolder, 'config')].concat(
-    // It is guaranteed to exist because we tweak it in `env.js`
-    process.env.NODE_PATH ? process.env.NODE_PATH.split(path.delimiter).filter(Boolean) : []),
+      // It is guaranteed to exist because we tweak it in `env.js`
+      process.env.NODE_PATH ? process.env.NODE_PATH.split(path.delimiter).filter(Boolean) : []
+    ),
     // These are the reasonable defaults supported by the Node ecosystem.
     // We also include JSX as a common component filename extension to support
     // some tools, although we do not recommend using it, see:
@@ -444,76 +424,78 @@ var webpackOpt = {
     // `web` extension prefixes have been added for better support
     // for React Native Web.
     extensions: ['.web.js', '.js', '.json', '.web.jsx', '.jsx'],
-    alias: (0, _extends3.default)({
+    alias: {
       'components': path.join(sourceFolder, path.resolve(`components/index.js`)),
-      'assets': path.join(sourceFolder, path.resolve(`assets/`))
-    }, alias)
+      'assets': path.join(sourceFolder, path.resolve(`assets/`)),
+      ...alias,
+    }
   },
   module: {
-    rules
+    rules,
   },
-  plugins
+  plugins,
 };
 
 if (isDev || config.enableSourceMap) {
   webpackOpt.devtool = 'source-map';
 }
 
-var formatSize = function formatSize(size) {
+const formatSize = size => {
   if (size <= 0) {
     return "0 bytes";
   }
 
-  var abbreviations = ["bytes", "kB", "MB", "GB"];
-  var index = Math.floor(Math.log(size) / Math.log(1000));
+  const abbreviations = ["bytes", "kB", "MB", "GB"];
+  const index = Math.floor(Math.log(size) / Math.log(1000));
 
   return `${+(size / Math.pow(1000, index)).toPrecision(3)} ${abbreviations[index]}`;
 };
 
-var onComplete = function onComplete(err, stats) {
+const onComplete = (err, stats) => {
   if (err) {
     console.log(err);
   } else {
-    var opt = {
-      colors: colorSupported
-    };
-    var s = stats.toJson(opt);
-    s.errors.forEach(function (e) {
-      return process.stderr.write(render('red', e));
-    });
-    s.warnings.forEach(function (e) {
-      return process.stderr.write(render('yellow', e));
-    });
+    const opt = {
+      colors: colorSupported,
+    }
+    const s = stats.toJson(opt);
+    s.errors.forEach(e => process.stderr.write(render('red', e)));
+    s.warnings.forEach(e => process.stderr.write(render('yellow', e)));
     process.stderr.write('\n');
     if (stats.hasErrors()) {
       if (!isDev) {
         process.stderr.write(render('red', 'Compile with errors!'));
-        (0, _setImmediate3.default)(function () {
-          return process.exit(1);
-        });
+        setImmediate(() => process.exit(1));
       }
     } else {
       process.stderr.write(render('white', `Hash: ${s.hash}\nTime: ${s.time}ms\n`));
-      var data = [["Asset", "Size", "Chunks", "", "", "Chunk Names"]];
+      const data = [
+        ["Asset", "Size", "Chunks", "", "", "Chunk Names"]
+      ];
       // Print the result:
-      s.assets.forEach(function (asset) {
-        data.push([asset.name.replace(/.+\//, ''), formatSize(asset.size), asset.chunks.join(', '), asset.emitted ? "[emitted]" : "", asset.isOverSizeLimit ? "[big]" : "", asset.chunkNames.join(", ")]);
+      s.assets.forEach(asset => {
+        data.push([
+          asset.name.replace(/.+\//, ''),
+          formatSize(asset.size),
+          asset.chunks.join(', '),
+          asset.emitted ? "[emitted]" : "",
+          asset.isOverSizeLimit ? "[big]" : "",
+          asset.chunkNames.join(", "),
+        ]);
       });
 
-      var maxLength = data[0].map(function (v) {
-        return 0;
-      });
-      data.forEach(function (asset) {
-        asset.forEach(function (a, index) {
-          var length = a.length;
+      let maxLength = data[0].map(v => 0);
+      data.forEach(asset => {
+        asset.forEach((a, index) => {
+          const length = a.length;
           maxLength[index] = Math.max(maxLength[index], length);
         });
       });
 
-      data.forEach(function (asset) {
-        var str = asset.map(function (a, index) {
-          var length = a.length;
-          var add = maxLength[index] - length;
+      data.forEach(asset => {
+        const str = asset.map((a, index) => {
+          const length = a.length;
+          let add = maxLength[index] - length;
           return `${a}${Buffer.alloc(add, ' ').toString()}`;
         }).join(' ');
 
@@ -522,11 +504,11 @@ var onComplete = function onComplete(err, stats) {
       process.stderr.write(render('green', 'Build Done!\n'));
     }
   }
-};
+}
 
 try {
   if (isDev) {
-    var defaultLanguage = void 0;
+    let defaultLanguage;
     if (config.i18n && config.i18n.languages && config.i18n.defaultLanguage) {
       defaultLanguage = config.i18n.defaultLanguage;
       webpackOpt.module.rules.push({
@@ -534,32 +516,34 @@ try {
         use: [{
           loader: require.resolve('lang-loader'),
           query: {
-            language: config.i18n.defaultLanguage
-          }
+            language: config.i18n.defaultLanguage,
+          },
         }, {
-          loader: require.resolve('json-loader')
+          loader: require.resolve('json-loader'),
         }]
       });
 
-      (0, _keys2.default)(webpackOpt.resolve.alias).forEach(function (k) {
+      Object.keys(webpackOpt.resolve.alias).forEach(k => {
         webpackOpt.resolve.alias[k] = webpackOpt.resolve.alias[k].replace('${lang}', config.i18n.defaultLanguage);
       });
 
-      webpackOpt.plugins.push(new InterpolateHtmlPlugin({
-        language: config.i18n.defaultLanguage
-      }));
+      webpackOpt.plugins.push(
+        new InterpolateHtmlPlugin({
+          language: config.i18n.defaultLanguage,
+        })
+      );
     }
-    var fopt = webpackOpt;
+    let fopt = webpackOpt;
     fopt.output.path = `${fopt.output.path}/${defaultLanguage}`;
     if (typeof config.beforeBuildHook === 'function') {
       fopt = config.beforeBuildHook(fopt, defaultLanguage);
     }
-    var compiler = webpack(fopt);
+    const compiler = webpack(fopt);
     devServer(config, webpackOpt);
 
-    var watching = compiler.watch({}, onComplete);
+    const watching = compiler.watch({}, onComplete);
 
-    compiler.plugin('invalid', function (compilation, callback) {
+    compiler.plugin('invalid', (compilation, callback) => {
       process.stderr.write(render('green', 'Compiling...\n'));
       if (typeof callback === 'function') {
         callback();
@@ -569,15 +553,15 @@ try {
     process.stderr.write(render('green', 'Watching Started!\n'));
   } else {
 
-    var doCompile = function doCompile(opt, lang) {
-      return new _promise2.default(function (resolve, reject) {
+    const doCompile = (opt, lang) => {
+      return new Promise((resolve, reject) => {
 
-        var fopt = opt;
+        let fopt = opt;
         if (typeof config.beforeBuildHook === 'function') {
           fopt = config.beforeBuildHook(fopt, lang);
         }
-        var compiler = webpack(fopt);
-        compiler.run(function (err, stats) {
+        const compiler = webpack(fopt);
+        compiler.run((err, stats) => {
           onComplete(err, stats);
 
           if (err || stats.hasErrors()) {
@@ -586,39 +570,39 @@ try {
             resolve();
           }
         });
-        var ProgressPlugin = require('webpack/lib/ProgressPlugin.js');
+        const ProgressPlugin = require('webpack/lib/ProgressPlugin.js');
         compiler.apply(new ProgressPlugin({
           profile: true
         }));
       });
-    };
+    }
 
     if (config.i18n && config.i18n.languages) {
 
-      var allDone = [];
+      const allDone = [];
 
-      config.i18n.languages.forEach(function (lang) {
+      config.i18n.languages.forEach(lang => {
         // Loop to set the language.
-        var found = null;
+        let found = null;
 
-        var clone = function clone(obj) {
+        const clone = (obj) => {
           if (typeof obj === 'object' && !(obj instanceof RegExp)) {
             if (obj === null) {
               return obj;
             }
-            var res = obj instanceof Array ? [] : {};
+            const res = (obj instanceof Array) ? [] : {};
 
             if (obj.__proto__ && !(obj instanceof Array)) {
               res.__proto__ = obj.__proto__;
             }
-            (0, _keys2.default)(obj).forEach(function (p) {
+            Object.keys(obj).forEach(p => {
               res[p] = clone(obj[p]);
             });
             return res;
           }
           return obj;
-        };
-        var opt = clone(webpackOpt);
+        }
+        const opt = clone(webpackOpt);
         // const opt = {};
 
         opt.module.rules.push({
@@ -626,37 +610,35 @@ try {
           use: [{
             loader: require.resolve('lang-loader'),
             query: {
-              language: lang
-            }
+              language: lang,
+            },
           }, {
-            loader: require.resolve('json-loader')
-          }]
+            loader: require.resolve('json-loader'),
+          }],
         });
         opt.output.filename = filename;
         opt.output.chunkFilename = chunkFilename;
         opt.output.path = `${opt.output.path}/${lang}`;
-        opt.plugins.push(new InterpolateHtmlPlugin({
-          language: lang
-        }));
-        (0, _keys2.default)(opt.resolve.alias).forEach(function (k) {
+        opt.plugins.push(
+          new InterpolateHtmlPlugin({
+            language: lang,
+          })
+        );
+        Object.keys(opt.resolve.alias).forEach(k => {
           opt.resolve.alias[k] = opt.resolve.alias[k].replace('${lang}', lang);
         });
 
         allDone.push(doCompile(opt, lang));
       });
 
-      var p = _promise2.default.all(allDone);
+      const p = Promise.all(allDone);
 
-      p.then(function () {
-        return console.log('Done');
-      });
+      p.then(() => console.log('Done'));
       p.catch(console.log);
     } else {
-      var _p = doCompile(webpackOpt);
-      _p.then(function () {
-        return console.log('Done');
-      });
-      _p.catch(console.log);
+      const p = doCompile(webpackOpt);
+      p.then(() => console.log('Done'));
+      p.catch(console.log);
     }
   }
 } catch (e) {
