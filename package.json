@@ -45,7 +45,7 @@
     "react-error-overlay": "^1.0.10",
     "style-loader": "^0.18.2",
     "supports-color": "^4.2.1",
-    "url-loader": "^0.5.9",
+    "url-loader": "0.6.2",
     "webpack": "^3.5.5",
     "webpack-dev-server": "^2.7.1"
   },
