@@ -375,13 +375,13 @@ if (config.htmlPath) {
 }
 
 const outputFolder = path.join(baseFolder, (config.targetFolder || 'dist'));
-let filename = './js/[name].[chunkhash:8].min.js';
-let chunkFilename = './js/[name].[chunkhash:8].chunk.min.js';
+let filename = 'js/[name].[chunkhash:8].min.js';
+let chunkFilename = 'js/[name].[chunkhash:8].chunk.min.js';
 if (isDev || !!config.ignoreNameHash) {
-  filename = './js/[name].min.js';
-  chunkFilename = './js/[name].chunk.min.js';
+  filename = 'js/[name].min.js';
+  chunkFilename = 'js/[name].chunk.min.js';
 }
-const fileName = (isDev || !!config.ignoreNameHash) ? './js/[name].min.js' : './js/[name].[chunkhash:8].min.js';
+const fileName = (isDev || !!config.ignoreNameHash) ? 'js/[name].min.js' : 'js/[name].[chunkhash:8].min.js';
 const alias = config.alias || {};
 
 if (!config.disablePolyfillAssign) {
