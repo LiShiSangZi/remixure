@@ -16,7 +16,7 @@ const colorSupported = require('supports-color');
 const baseFolder = path.resolve('.');
 const configPath = path.join(baseFolder, 'config');
 
-// const devServer = require('./devServer');
+const devServer = require('./devServer');
 
 let config = {};
 
@@ -538,7 +538,7 @@ try {
       fopt = config.beforeBuildHook(fopt, defaultLanguage);
     }
     const compiler = webpack(fopt);
-    // devServer(config, webpackOpt);
+    devServer(config, webpackOpt);
 
     const watching = compiler.watch({}, onComplete);
 
