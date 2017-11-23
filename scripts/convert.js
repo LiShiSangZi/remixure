@@ -39,6 +39,13 @@ files.forEach(f => {
     ],
   });
   const dest = path.join(target, f);
-  fs.ensureFileSync(dest);
-  fs.writeFileSync(dest, r.code, {});
+  try {
+    fs.ensureDirSync(target);
+    fs.removeSync(dest);
+  } catch (e) {
+
+  }
+  fs.writeFileSync(dest, r.code, {
+    mode: 33261, //fs.constants.S_IRWXU,
+  });
 });
