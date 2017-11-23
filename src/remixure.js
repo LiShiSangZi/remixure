@@ -6,9 +6,7 @@ const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const chalk = require('chalk');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CleanPlugin = require('clean-webpack-plugin');
-const InterpolateHtmlPlugin = require('react-dev-utils/InterpolateHtmlPlugin');
-
-const ModuleScopePlugin = require('react-dev-utils/ModuleScopePlugin');
+const InterpolateHtmlPlugin = require('interpolate-html-plugin');
 
 const path = require('path');
 const fs = require('fs');
@@ -18,7 +16,7 @@ const colorSupported = require('supports-color');
 const baseFolder = path.resolve('.');
 const configPath = path.join(baseFolder, 'config');
 
-const devServer = require('./devServer');
+// const devServer = require('./devServer');
 
 let config = {};
 
@@ -109,7 +107,22 @@ const babelConfig = {
   loader: require.resolve('babel-loader'),
   options: {
     presets: [
-      require.resolve('babel-preset-react-app'),
+      [
+        require.resolve('babel-preset-env'),
+        {
+          targets: {
+            browsers: [
+              '>1%',
+              'last 4 versions',
+              'Firefox ESR',
+              'not ie < 9', // React doesn't support IE8 anyway
+            ]
+          }
+        }
+      ],
+      [
+        require.resolve('babel-preset-react'),
+      ]
     ],
     plugins: [],
     compact: true,
@@ -528,7 +541,7 @@ try {
       fopt = config.beforeBuildHook(fopt, defaultLanguage);
     }
     const compiler = webpack(fopt);
-    devServer(config, webpackOpt);
+    // devServer(config, webpackOpt);
 
     const watching = compiler.watch({}, onComplete);
 

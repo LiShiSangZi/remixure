@@ -19,7 +19,6 @@ const {
  * This code is to handle the dev server logic.
  */
 module.exports = (config, webpackOpt) => {
-  console.log(config);
   if (!config.devServer) {
     process.stderr.write(chalk.blue('There is no devServer configurations. Ignore...\n'));
     return;
