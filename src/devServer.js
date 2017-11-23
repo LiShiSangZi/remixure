@@ -6,7 +6,7 @@ const webpack = require('webpack');
 const WebpackDevServer = require('webpack-dev-server');
 const chalk = require('chalk');
 const clearConsole = require('react-dev-utils/clearConsole');
-const errorOverlayMiddleware = require('react-error-overlay/middleware');
+const errorOverlayMiddleware = require('react-dev-utils/errorOverlayMiddleware');
 const noopServiceWorkerMiddleware = require('react-dev-utils/noopServiceWorkerMiddleware');
 const openBrowser = require('react-dev-utils/openBrowser');
 

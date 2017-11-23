@@ -8,6 +8,8 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CleanPlugin = require('clean-webpack-plugin');
 const InterpolateHtmlPlugin = require('react-dev-utils/InterpolateHtmlPlugin');
 
+var ProgressBarPlugin = require('progress-bar-webpack-plugin');
+
 const path = require('path');
 const fs = require('fs');
 
@@ -16,7 +18,7 @@ const colorSupported = require('supports-color');
 const baseFolder = path.resolve('.');
 const configPath = path.join(baseFolder, 'config');
 
-const devServer = require('./devServer');
+// const devServer = require('./devServer');
 
 let config = {};
 
@@ -33,7 +35,7 @@ try {
   const c = require(path.join(configPath, 'config.default.js'));
   config = c;
 } catch (e) {
-  process.stderr.write(render('red', 'The config file is not found! You need a config.default.js file under config folder.\n'));
+  process.stderr.write(render('red', 'The config file is not found or something wrong when compile the config file! You need a config.default.js file under config folder.\n'));
 
   setImmediate(() => process.exit(1));
 }
@@ -91,7 +93,7 @@ if (config.entry && config.entry.entries) {
   });
 }
 
-const borwsers = config.browsers || [
+const browsers = config.browsers || [
   '>1%',
   'last 4 versions',
   'Firefox ESR',
@@ -529,7 +531,8 @@ try {
       webpackOpt.plugins.push(
         new InterpolateHtmlPlugin({
           language: config.i18n.defaultLanguage,
-        })
+        }),
+        new ProgressBarPlugin()
       );
     }
     let fopt = webpackOpt;
@@ -538,7 +541,7 @@ try {
       fopt = config.beforeBuildHook(fopt, defaultLanguage);
     }
     const compiler = webpack(fopt);
-    devServer(config, webpackOpt);
+    // devServer(config, webpackOpt);
 
     const watching = compiler.watch({}, onComplete);
 
@@ -621,7 +624,8 @@ try {
         opt.plugins.push(
           new InterpolateHtmlPlugin({
             language: lang,
-          })
+          }),
+          new ProgressBarPlugin(),
         );
         Object.keys(opt.resolve.alias).forEach(k => {
           opt.resolve.alias[k] = opt.resolve.alias[k].replace('${lang}', lang);
