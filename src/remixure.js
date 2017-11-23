@@ -98,11 +98,6 @@ if (Object.keys(entry).length < 1) {
 
   setImmediate(() => process.exit(1));
 }
-if (Object.keys(entry).some(_key => _key === 'polyfills')) {
-  process.stderr.write(render('red', `"polyfills" entry already exists.\n`));
-
-  setImmediate(() => process.exit(1));
-}
 
 let includeModules = [];
 if (config.compiledNodeModules) {
@@ -383,12 +378,6 @@ if (isDev || !!config.ignoreNameHash) {
 }
 const fileName = (isDev || !!config.ignoreNameHash) ? 'js/[name].min.js' : 'js/[name].[chunkhash:8].min.js';
 const alias = config.alias || {};
-
-if (!config.disablePolyfillAssign) {
-  entry = Object.assign(entry, {
-    polyfills: require.resolve('./polyfills')
-  });
-}
 
 /**
  * Build your webpack
