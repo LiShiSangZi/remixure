@@ -100,9 +100,14 @@ exports.i18n.defaultLanguage = 'zh-CN'; // For dev mode, we can only compile one
 
 exports.enableSourceMap = true; // Make the source map avaiable even dev is false.
 
-exports.disablePolyfillAssign = true; // This will not add Object.assign polyfill.
-
 exports.ignoreNameHash = true; // This will not hash your output file name even in production mode.
+
+exports.browsers: = [
+  '>1%',
+  'last 4 versions',
+  'Firefox ESR',
+  'not ie < 9'
+]; // You can sepecific target browsers you need.
 ```
 
 ## Read language configuration from JS code

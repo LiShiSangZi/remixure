@@ -6,7 +6,7 @@ const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const chalk = require('chalk');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CleanPlugin = require('clean-webpack-plugin');
-const InterpolateHtmlPlugin = require('interpolate-html-plugin');
+const InterpolateHtmlPlugin = require('react-dev-utils/InterpolateHtmlPlugin');
 
 const path = require('path');
 const fs = require('fs');
@@ -91,6 +91,13 @@ if (config.entry && config.entry.entries) {
   });
 }
 
+const borwsers = config.browsers || [
+  '>1%',
+  'last 4 versions',
+  'Firefox ESR',
+  'not ie < 9'
+];
+
 if (Object.keys(entry).length < 1) {
   process.stderr.write(render('red', `You do not have entry files under folder ${sourceFolder}.\n`));
 
@@ -111,12 +118,7 @@ const babelConfig = {
         require.resolve('babel-preset-env'),
         {
           targets: {
-            browsers: [
-              '>1%',
-              'last 4 versions',
-              'Firefox ESR',
-              'not ie < 9', // React doesn't support IE8 anyway
-            ]
+            browsers,
           }
         }
       ],
@@ -177,12 +179,7 @@ if (config.less) {
         plugins: () => [
           require('postcss-flexbugs-fixes'),
           autoprefixer({
-            browsers: [
-              '>1%',
-              'last 4 versions',
-              'Firefox ESR',
-              'not ie < 9', // React doesn't support IE8 anyway
-            ],
+            browsers,
             flexbox: 'no-2009',
           }),
         ],
