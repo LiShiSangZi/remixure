@@ -18,7 +18,7 @@ const colorSupported = require('supports-color');
 const baseFolder = path.resolve('.');
 const configPath = path.join(baseFolder, 'config');
 
-// const devServer = require('./devServer');
+const devServer = require('./devServer');
 
 let config = {};
 
@@ -132,6 +132,7 @@ const babelConfig = {
       require.resolve('babel-plugin-transform-class-properties'),
       require.resolve('babel-plugin-transform-object-rest-spread'),
       require.resolve('babel-plugin-syntax-dynamic-import'),
+      require.resolve('babel-plugin-transform-runtime'),
     ],
     compact: true,
   },
@@ -213,7 +214,6 @@ if (config.less) {
   rules.push({
     test: /\.less$/,
     exclude: (path) => {
-
       if (config.ignoreCSSModule) {
         const reg = new RegExp(config.ignoreCSSModule.join('|'));
         if (reg.test(path)) {
@@ -545,7 +545,7 @@ try {
       fopt = config.beforeBuildHook(fopt, defaultLanguage);
     }
     const compiler = webpack(fopt);
-    // devServer(config, webpackOpt);
+    devServer(config, webpackOpt);
 
     const watching = compiler.watch({}, onComplete);
 

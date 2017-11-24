@@ -41,7 +41,7 @@ var colorSupported = require('supports-color');
 var baseFolder = path.resolve('.');
 var configPath = path.join(baseFolder, 'config');
 
-// const devServer = require('./devServer');
+var devServer = require('./devServer');
 
 var config = {};
 
@@ -146,7 +146,7 @@ var babelConfig = {
         browsers
       }
     }], [require.resolve('babel-preset-react')]],
-    plugins: [require.resolve('babel-plugin-transform-class-properties'), require.resolve('babel-plugin-transform-object-rest-spread'), require.resolve('babel-plugin-syntax-dynamic-import')],
+    plugins: [require.resolve('babel-plugin-transform-class-properties'), require.resolve('babel-plugin-transform-object-rest-spread'), require.resolve('babel-plugin-syntax-dynamic-import'), require.resolve('babel-plugin-transform-runtime')],
     compact: true
   }
 };
@@ -224,7 +224,6 @@ if (config.less) {
   rules.push({
     test: /\.less$/,
     exclude: function exclude(path) {
-
       if (config.ignoreCSSModule) {
         var reg = new RegExp(config.ignoreCSSModule.join('|'));
         if (reg.test(path)) {
@@ -546,7 +545,7 @@ try {
       fopt = config.beforeBuildHook(fopt, defaultLanguage);
     }
     var compiler = webpack(fopt);
-    // devServer(config, webpackOpt);
+    devServer(config, webpackOpt);
 
     var watching = compiler.watch({}, onComplete);
 
