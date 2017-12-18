@@ -5,6 +5,10 @@ var _promise = require('babel-runtime/core-js/promise');
 
 var _promise2 = _interopRequireDefault(_promise);
 
+var _stringify = require('babel-runtime/core-js/json/stringify');
+
+var _stringify2 = _interopRequireDefault(_stringify);
+
 var _extends2 = require('babel-runtime/helpers/extends');
 
 var _extends3 = _interopRequireDefault(_extends2);
@@ -339,6 +343,9 @@ if (!isDev && !config.ignoreUglify) {
       ascii_only: true
     },
     sourceMap: !!config.enableSourceMap
+  }));
+  plugins.push(new webpack.DefinePlugin({
+    'process.env.NODE_ENV': (0, _stringify2.default)('production')
   }));
 }
 
