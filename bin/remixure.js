@@ -114,7 +114,7 @@ if (!process.env.BABEL_ENV) {
 /** webpack entry list. */
 var entry = {};
 if (config.entry && config.entry.entries) {
-  entry = config.entry.entries;
+  entry = (0, _assign2.default)(entry, config.entry.entries);
 } else {
   fs.readdirSync(sourceFolder).filter(function (file) {
     return fs.statSync(path.join(sourceFolder, file)).isFile() && /\.js(x*)$/.test(file) && (!config.entry || config.entry.exclude.indexOf(file) < 0);
@@ -148,7 +148,8 @@ var babelConfig = {
     presets: [[require.resolve('babel-preset-env'), {
       targets: {
         browsers
-      }
+      },
+      useBuiltIns: true
     }], [require.resolve('babel-preset-react')]],
     plugins: [require.resolve('babel-plugin-transform-class-properties'), require.resolve('babel-plugin-transform-object-rest-spread'), require.resolve('babel-plugin-syntax-dynamic-import'), require.resolve('babel-plugin-transform-runtime')],
     compact: true
