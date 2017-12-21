@@ -281,6 +281,13 @@ if (config.less) {
     });
   }
 }
+
+var standardName = '[name].[hash:8].[ext]';
+
+if (!!config.ignoreNameHash || isDev) {
+  standardName = '[name].[ext]';
+}
+
 // "url" loader works like "file" loader except that it embeds assets
 // smaller than specified limit in bytes as data URLs to avoid requests.
 // A missing `test` is equivalent to a match.
@@ -289,7 +296,8 @@ rules.push({
   loader: require.resolve('url-loader'),
   options: {
     limit: 10000,
-    name: 'static/media/[name].[hash:8].[ext]'
+    name: `static/media/${standardName}`
+
   }
 });
 rules.push({
@@ -302,7 +310,8 @@ rules.push({
   },
   options: {
     limit: 100,
-    name: 'static/html/[name].[hash:8].[ext]'
+    name: `static/html/${standardName}`
+
   }
 });
 
