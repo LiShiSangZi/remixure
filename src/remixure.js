@@ -84,7 +84,7 @@ if (!process.env.BABEL_ENV) {
 /** webpack entry list. */
 let entry = {};
 if (config.entry && config.entry.entries) {
-  entry = config.entry.entries;
+  entry = Object.assign(entry, config.entry.entries);
 } else {
   fs.readdirSync(sourceFolder).filter(file => {
     return fs.statSync(path.join(sourceFolder, file)).isFile() && /\.js(x*)$/.test(file) && (!config.entry || config.entry.exclude.indexOf(file) < 0);
@@ -121,7 +121,8 @@ const babelConfig = {
         {
           targets: {
             browsers,
-          }
+          },
+          useBuiltIns: true,
         }
       ],
       [
@@ -333,6 +334,9 @@ if (!isDev && !config.ignoreUglify) {
       ascii_only: true,
     },
     sourceMap: !!config.enableSourceMap,
+  }));
+  plugins.push(new webpack.DefinePlugin({
+    'process.env.NODE_ENV': JSON.stringify('production')
   }));
 }
 
