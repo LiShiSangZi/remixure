@@ -360,7 +360,7 @@ if (!isDev && !config.ignoreUglify) {
 }
 
 plugins.push(new ExtractTextPlugin({
-  filename: '[name].min.css',
+  filename: !config.ignoreNameHash ? '[name].[hash:8].min.css' : '[name].min.css',
   allChunks: true,
   ignoreOrder: true
 }));
