@@ -87,6 +87,7 @@ if (config.entry && config.entry.entries) {
   entry = Object.assign(entry, config.entry.entries);
 } else {
   fs.readdirSync(sourceFolder).filter(file => {
+    file = file.replace(/^(.*)\//, '');
     return fs.statSync(path.join(sourceFolder, file)).isFile() && /\.js(x*)$/.test(file) && (!config.entry || config.entry.exclude.indexOf(file) < 0);
   }).forEach(file => {
     entry[file.replace(/\.js(x*)$/, '')] = path.join(sourceFolder, file);
