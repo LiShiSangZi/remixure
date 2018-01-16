@@ -233,6 +233,36 @@ if (config.less) {
   });
 
   rules.push({
+    test: /\.css$/,
+    exclude: function exclude(path) {
+      if (config.ignoreCSSModule) {
+        var reg = new RegExp(config.ignoreCSSModule.join('|'));
+        if (reg.test(path)) {
+          return true;
+        }
+      }
+
+      if (config.antd && /antd/.test(path)) {
+        return true;
+      }
+
+      return (/node_modues/.test(path)
+      );
+    },
+    use: ExtractTextPlugin.extract({
+      fallback: require.resolve('style-loader'),
+      use: [{
+        loader: require.resolve('css-loader'),
+        options: {
+          importLoaders: 3,
+          sourceMap: isDev || !!config.enableSourceMap,
+          minimize: !isDev
+        }
+      }]
+    })
+  });
+
+  rules.push({
     test: /\.less$/,
     exclude: function exclude(path) {
       if (config.ignoreCSSModule) {
