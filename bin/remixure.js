@@ -117,6 +117,7 @@ if (config.entry && config.entry.entries) {
   entry = (0, _assign2.default)(entry, config.entry.entries);
 } else {
   fs.readdirSync(sourceFolder).filter(function (file) {
+    file = file.replace(/^(.*)\//, '');
     return fs.statSync(path.join(sourceFolder, file)).isFile() && /\.js(x*)$/.test(file) && (!config.entry || config.entry.exclude.indexOf(file) < 0);
   }).forEach(function (file) {
     entry[file.replace(/\.js(x*)$/, '')] = path.join(sourceFolder, file);
@@ -151,10 +152,14 @@ var babelConfig = {
       },
       useBuiltIns: true
     }], [require.resolve('babel-preset-react')]],
-    plugins: [require.resolve('babel-plugin-transform-class-properties'), require.resolve('babel-plugin-transform-object-rest-spread'), require.resolve('babel-plugin-syntax-dynamic-import'), require.resolve('babel-plugin-transform-runtime')],
+    plugins: [require.resolve('babel-plugin-transform-class-properties'), require.resolve('babel-plugin-transform-object-rest-spread'), require.resolve('babel-plugin-syntax-dynamic-import'), require.resolve('babel-plugin-transform-runtime'), require.resolve('babel-plugin-transform-decorators-legacy')],
     compact: true
   }
 };
+
+if (config.enableDva) {
+  babelConfig.options.plugins.push(require.resolve('babel-plugin-dva-hmr'));
+}
 
 // Enable babel-loader with React is default.
 var babelLoader = {
@@ -177,6 +182,7 @@ var babelLoader = {
 if (config.antd) {
   babelLoader.use.options.plugins.push([require.resolve('babel-plugin-import'), [{
     libraryName: "antd",
+    libraryDirectory: "es",
     style: true
   }]]);
 }

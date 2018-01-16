@@ -85,6 +85,8 @@ exports.i18n = {
 
 exports.addtionalPlugins = [...]; // Your plugin in here.
 
+exports.enableDva = true; // If you want to dva.
+
 ```
 
 If you want to use the dev mode. There are some addional configurations under config/config.dev.js:

@@ -135,10 +135,15 @@ const babelConfig = {
       require.resolve('babel-plugin-transform-object-rest-spread'),
       require.resolve('babel-plugin-syntax-dynamic-import'),
       require.resolve('babel-plugin-transform-runtime'),
+      require.resolve('babel-plugin-transform-decorators-legacy')
     ],
     compact: true,
   },
 };
+
+if (config.enableDva) {
+  babelConfig.options.plugins.push(require.resolve('babel-plugin-dva-hmr'));
+}
 
 // Enable babel-loader with React is default.
 const babelLoader = {
@@ -161,6 +166,7 @@ const babelLoader = {
 if (config.antd) {
   babelLoader.use.options.plugins.push([require.resolve('babel-plugin-import'), [{
     libraryName: "antd",
+    libraryDirectory: "es",
     style: true
   }]]);
 }
