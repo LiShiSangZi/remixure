@@ -10,6 +10,9 @@ const root = path.join(__dirname, '..', 'src');
 const files = glob.sync('{**/*.js,**/*.jsx}', {
   cwd: root,
 });
+const refreshScripts = glob.sync('**/*.applescript', {
+  cwd: root,
+});
 const target = path.join(__dirname, '..', 'bin');
 
 try {
@@ -49,3 +52,9 @@ files.forEach(f => {
     mode: 33261, //fs.constants.S_IRWXU,
   });
 });
+
+refreshScripts.forEach(f => {
+  const p = path.join(root, f);
+  const dest = path.join(target, f);
+  fs.copyFileSync(p, dest);
+})

@@ -7,6 +7,7 @@ const chalk = require('chalk');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CleanPlugin = require('clean-webpack-plugin');
 const InterpolateHtmlPlugin = require('react-dev-utils/InterpolateHtmlPlugin');
+const execa = require('execa');
 
 var ProgressBarPlugin = require('progress-bar-webpack-plugin');
 
@@ -494,6 +495,9 @@ if (isDev || config.enableSourceMap) {
   webpackOpt.devtool = 'source-map';
 }
 
+// for auto refresh browser
+const inspectionAddress = config.inspection
+
 const formatSize = size => {
   if (size <= 0) {
     return "0 bytes";
@@ -556,6 +560,14 @@ const onComplete = (err, stats) => {
         process.stderr.write(render('green', `${str}\n`));
       });
       process.stderr.write(render('green', 'Build Done!\n'));
+    }
+    try {
+      inspectionAddress && execa.shell('osascript refreshChrome.applescript "' + encodeURI(inspectionAddress) + '"', {
+        cwd: __dirname,
+        stdio: 'ignore',
+      });
+    } catch (e) {
+      console.log(e)
     }
   }
 }

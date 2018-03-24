@@ -54,10 +54,10 @@ exports.less = {
   }
 }
 exports.entry = {
-  // This is the entry file configuration. 
-  // By default entry files will be all jsx/js file under src's root folder. 
-  // If you want to exclude some file, you need to do as follows: 
-  
+  // This is the entry file configuration.
+  // By default entry files will be all jsx/js file under src's root folder.
+  // If you want to exclude some file, you need to do as follows:
+
 }
 
 exports.antd = { // If you are using antd.
@@ -97,6 +97,8 @@ exports.devServer = {
   "HOST": "0.0.0.0", // Optional: Default value is 0.0.0.0.
   "PORT": "8888", // Optional: Default value is 8888.
 }; // If you want to enable the devServer.
+
+exports.inspection = "http://localhost:8080" // Auto open and refresh browser only support macOS.
 
 exports.i18n.defaultLanguage = 'zh-CN'; // For dev mode, we can only compile one language for one time. So we need to speicific the default language.
 
