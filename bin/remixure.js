@@ -154,6 +154,7 @@ var babelConfig = {
       useBuiltIns: true
     }], [require.resolve('babel-preset-react')]],
     plugins: [require.resolve('babel-plugin-transform-class-properties'), require.resolve('babel-plugin-transform-object-rest-spread'), require.resolve('babel-plugin-syntax-dynamic-import'), require.resolve('babel-plugin-transform-runtime'), require.resolve('babel-plugin-transform-decorators-legacy')],
+    cacheDirectory: true,
     compact: true
   }
 };
@@ -389,6 +390,7 @@ if (!isDev && !config.ignoreUglify) {
       // https://github.com/facebookincubator/create-react-app/issues/2488
       ascii_only: true
     },
+    parallel: config.uglifyParallel,
     sourceMap: !!config.enableSourceMap
   }));
   plugins.push(new webpack.DefinePlugin({

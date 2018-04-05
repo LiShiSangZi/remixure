@@ -138,6 +138,7 @@ const babelConfig = {
       require.resolve('babel-plugin-transform-runtime'),
       require.resolve('babel-plugin-transform-decorators-legacy')
     ],
+    cacheDirectory: true,
     compact: true,
   },
 };
@@ -379,6 +380,7 @@ if (!isDev && !config.ignoreUglify) {
       // https://github.com/facebookincubator/create-react-app/issues/2488
       ascii_only: true,
     },
+    parallel: config.uglifyParallel,
     sourceMap: !!config.enableSourceMap,
   }));
   plugins.push(new webpack.DefinePlugin({

@@ -66,6 +66,8 @@ exports.antd = { // If you are using antd.
 
 exports.ignoreUglify = true; // You can ignore the uglify process by setting this to true.
 
+exports.uglifyParallel = true; // (Boolean or Number) If it is true, will parallel uglify by os.cpus.length - 1. If it is false, disable the parallel uglify. If it is a number, will set the cpus cores as the number.
+
 exports.useMoment = true; // If you are using moment.js.
 
 exports.chunks = ['vendor', 'components']; // The chunk key you want to do the chunk.
