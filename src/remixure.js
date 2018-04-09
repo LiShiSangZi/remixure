@@ -576,7 +576,7 @@ const onComplete = (err, stats) => {
 
 try {
   if (isDev) {
-    let defaultLanguage;
+    let defaultLanguage = 'default';
     if (config.i18n && config.i18n.languages && config.i18n.defaultLanguage) {
       defaultLanguage = config.i18n.defaultLanguage;
       webpackOpt.module.rules.push({
@@ -603,6 +603,7 @@ try {
       );
     }
     let fopt = webpackOpt;
+    fopt.mode = 'development';
     fopt.output.path = `${fopt.output.path}/${defaultLanguage}`;
     if (typeof config.beforeBuildHook === 'function') {
       fopt = config.beforeBuildHook(fopt, defaultLanguage);
@@ -611,12 +612,9 @@ try {
     devServer(config, webpackOpt);
 
     const watching = compiler.watch({}, onComplete);
-
-    compiler.plugin('invalid', (compilation, callback) => {
+    
+    compiler.hooks.done.tap('remixure', stats => {
       process.stderr.write(render('green', 'Compiling...\n'));
-      if (typeof callback === 'function') {
-        callback();
-      }
     });
 
     process.stderr.write(render('green', 'Watching Started!\n'));
@@ -629,6 +627,7 @@ try {
         if (typeof config.beforeBuildHook === 'function') {
           fopt = config.beforeBuildHook(fopt, lang);
         }
+        fopt.mode = 'production';
         const compiler = webpack(fopt);
         compiler.run((err, stats) => {
           onComplete(err, stats);

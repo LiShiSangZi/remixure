@@ -583,7 +583,7 @@ var onComplete = function onComplete(err, stats) {
 
 try {
   if (isDev) {
-    var defaultLanguage = void 0;
+    var defaultLanguage = 'default';
     if (config.i18n && config.i18n.languages && config.i18n.defaultLanguage) {
       defaultLanguage = config.i18n.defaultLanguage;
       webpackOpt.module.rules.push({
@@ -607,6 +607,7 @@ try {
       }), new ProgressBarPlugin());
     }
     var fopt = webpackOpt;
+    fopt.mode = 'development';
     fopt.output.path = `${fopt.output.path}/${defaultLanguage}`;
     if (typeof config.beforeBuildHook === 'function') {
       fopt = config.beforeBuildHook(fopt, defaultLanguage);
@@ -616,11 +617,8 @@ try {
 
     var watching = compiler.watch({}, onComplete);
 
-    compiler.plugin('invalid', function (compilation, callback) {
+    compiler.hooks.done.tap('remixure', function (stats) {
       process.stderr.write(render('green', 'Compiling...\n'));
-      if (typeof callback === 'function') {
-        callback();
-      }
     });
 
     process.stderr.write(render('green', 'Watching Started!\n'));
@@ -633,6 +631,7 @@ try {
         if (typeof config.beforeBuildHook === 'function') {
           fopt = config.beforeBuildHook(fopt, lang);
         }
+        fopt.mode = 'production';
         var compiler = webpack(fopt);
         compiler.run(function (err, stats) {
           onComplete(err, stats);
