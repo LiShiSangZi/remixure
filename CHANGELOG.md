@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="1.0.0-beta"></a>
+# [1.0.0-beta](https://github.com/LiShiSangZi/remixure/compare/v0.4.3...v1.0.0-beta) (2018-04-09)
+
+
+
 <a name="0.4.3"></a>
 ## [0.4.3](https://github.com/LiShiSangZi/remixure/compare/v0.4.2...v0.4.3) (2018-03-20)
 
