@@ -213,7 +213,7 @@ if (config.less) {
   }
 
   const lessOpt = config.less.options || {};
-
+  lessOpt.javascriptEnabled = true;
   use.push({
     loader: require.resolve('less-loader'),
     options: {
@@ -299,6 +299,7 @@ if (config.less) {
             loader: require.resolve('less-loader'),
             options: {
               modifyVars: config.antd.theme,
+              javascriptEnabled: true
             },
           },
         ],

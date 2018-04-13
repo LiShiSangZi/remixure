@@ -153,7 +153,7 @@ var babelConfig = {
       },
       useBuiltIns: true
     }], [require.resolve('babel-preset-react')]],
-    plugins: [require.resolve('babel-plugin-transform-decorators-legacy'), require.resolve('babel-plugin-transform-class-properties'), require.resolve('babel-plugin-transform-object-rest-spread'), require.resolve('babel-plugin-syntax-dynamic-import'), require.resolve('babel-plugin-transform-runtime')],
+    plugins: [require.resolve('babel-plugin-transform-class-properties'), require.resolve('babel-plugin-transform-object-rest-spread'), require.resolve('babel-plugin-syntax-dynamic-import'), require.resolve('babel-plugin-transform-runtime'), require.resolve('babel-plugin-transform-decorators-legacy')],
     cacheDirectory: true,
     compact: true
   }
@@ -228,7 +228,7 @@ if (config.less) {
   }
 
   var lessOpt = config.less.options || {};
-
+  lessOpt.javascriptEnabled = true;
   use.push({
     loader: require.resolve('less-loader'),
     options: (0, _extends3.default)({}, lessOpt)
@@ -312,7 +312,8 @@ if (config.less) {
         }, {
           loader: require.resolve('less-loader'),
           options: {
-            modifyVars: config.antd.theme
+            modifyVars: config.antd.theme,
+            javascriptEnabled: true
           }
         }]
       })
