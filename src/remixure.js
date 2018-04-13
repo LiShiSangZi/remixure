@@ -132,11 +132,11 @@ const babelConfig = {
       ]
     ],
     plugins: [
-      require.resolve('babel-plugin-transform-decorators-legacy',
+      require.resolve('babel-plugin-transform-decorators-legacy'),
       require.resolve('babel-plugin-transform-class-properties'),
       require.resolve('babel-plugin-transform-object-rest-spread'),
       require.resolve('babel-plugin-syntax-dynamic-import'),
-      require.resolve('babel-plugin-transform-runtime'))
+      require.resolve('babel-plugin-transform-runtime')
     ],
     cacheDirectory: true,
     compact: true,
