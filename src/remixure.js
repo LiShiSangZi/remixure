@@ -587,8 +587,6 @@ try {
           query: {
             language: config.i18n.defaultLanguage,
           },
-        }, {
-          loader: require.resolve('json-loader'),
         }]
       });
 
@@ -681,8 +679,6 @@ try {
             query: {
               language: lang,
             },
-          }, {
-            loader: require.resolve('json-loader'),
           }],
         });
         opt.output.filename = filename;
