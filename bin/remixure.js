@@ -13,10 +13,6 @@ var _extends2 = require('babel-runtime/helpers/extends');
 
 var _extends3 = _interopRequireDefault(_extends2);
 
-var _keys = require('babel-runtime/core-js/object/keys');
-
-var _keys2 = _interopRequireDefault(_keys);
-
 var _assign = require('babel-runtime/core-js/object/assign');
 
 var _assign2 = _interopRequireDefault(_assign);
@@ -24,6 +20,18 @@ var _assign2 = _interopRequireDefault(_assign);
 var _setImmediate2 = require('babel-runtime/core-js/set-immediate');
 
 var _setImmediate3 = _interopRequireDefault(_setImmediate2);
+
+var _keys = require('babel-runtime/core-js/object/keys');
+
+var _keys2 = _interopRequireDefault(_keys);
+
+var _classCallCheck2 = require('babel-runtime/helpers/classCallCheck');
+
+var _classCallCheck3 = _interopRequireDefault(_classCallCheck2);
+
+var _createClass2 = require('babel-runtime/helpers/createClass');
+
+var _createClass3 = _interopRequireDefault(_createClass2);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -33,7 +41,8 @@ var ExtractTextPlugin = require('extract-text-webpack-plugin');
 var chalk = require('chalk');
 var HtmlWebpackPlugin = require('html-webpack-plugin');
 var CleanPlugin = require('clean-webpack-plugin');
-var InterpolateHtmlPlugin = require('react-dev-utils/InterpolateHtmlPlugin');
+// TODO: Put it back when react-dev-utils support Webpack 4.
+// const InterpolateHtmlPlugin = require('react-dev-utils/InterpolateHtmlPlugin');
 var execa = require('execa');
 
 var ProgressBarPlugin = require('progress-bar-webpack-plugin');
@@ -42,6 +51,36 @@ var path = require('path');
 var fs = require('fs');
 
 var colorSupported = require('supports-color');
+
+// TODO: Remove me when react-dev-utils support webpack 4.
+var escapeStringRegexp = require('escape-string-regexp');
+
+var InterpolateHtmlPlugin = function () {
+  function InterpolateHtmlPlugin(replacements) {
+    (0, _classCallCheck3.default)(this, InterpolateHtmlPlugin);
+
+    this.replacements = replacements;
+  }
+
+  (0, _createClass3.default)(InterpolateHtmlPlugin, [{
+    key: 'apply',
+    value: function apply(compiler) {
+      var _this = this;
+
+      compiler.hooks.compilation.tap('InterpolateHtmlPlugin', function (compilation) {
+        compilation.hooks.htmlWebpackPluginBeforeHtmlProcessing.tap('InterpolateHtmlPlugin', function (data) {
+          // Run HTML through a series of user-specified string replacements.
+          (0, _keys2.default)(_this.replacements).forEach(function (key) {
+            var value = _this.replacements[key];
+            data.html = data.html.replace(new RegExp('%' + escapeStringRegexp(key) + '%', 'g'), value);
+          });
+        });
+      });
+    }
+  }]);
+  return InterpolateHtmlPlugin;
+}();
+// End TODO.
 
 var baseFolder = path.resolve('.');
 var configPath = path.join(baseFolder, 'config');
@@ -183,8 +222,8 @@ var babelLoader = {
 
 if (config.antd) {
   babelLoader.use.options.plugins.push([require.resolve('babel-plugin-import'), [{
-    libraryName: "antd",
-    libraryDirectory: "es",
+    libraryName: 'antd',
+    libraryDirectory: 'es',
     style: true
   }]]);
 }
@@ -288,7 +327,6 @@ if (config.less) {
   });
 
   if (config.antd && config.less.enableCSSModule) {
-
     // if (config.antd && /antd/.test(path)) {
     //   return true;
     // }
@@ -336,7 +374,6 @@ rules.push({
   options: {
     limit: 10000,
     name: `static/media/${standardName}`
-
   }
 });
 rules.push({
@@ -350,7 +387,6 @@ rules.push({
   options: {
     limit: 100,
     name: `static/html/${standardName}`
-
   }
 });
 
@@ -492,8 +528,8 @@ var webpackOpt = {
     // for React Native Web.
     extensions: ['.web.js', '.js', '.json', '.web.jsx', '.jsx'],
     alias: (0, _extends3.default)({
-      'components': path.join(sourceFolder, path.resolve(`components/index.js`)),
-      'assets': path.join(sourceFolder, path.resolve(`assets/`))
+      components: path.join(sourceFolder, path.resolve(`components/index.js`)),
+      assets: path.join(sourceFolder, path.resolve(`assets/`))
     }, alias)
   },
   module: {
@@ -511,10 +547,10 @@ var inspectionAddress = config.inspection;
 
 var formatSize = function formatSize(size) {
   if (size <= 0) {
-    return "0 bytes";
+    return '0 bytes';
   }
 
-  var abbreviations = ["bytes", "kB", "MB", "GB"];
+  var abbreviations = ['bytes', 'kB', 'MB', 'GB'];
   var index = Math.floor(Math.log(size) / Math.log(1000));
 
   return `${+(size / Math.pow(1000, index)).toPrecision(3)} ${abbreviations[index]}`;
@@ -544,10 +580,10 @@ var onComplete = function onComplete(err, stats) {
       }
     } else {
       process.stderr.write(render('white', `Hash: ${s.hash}\nTime: ${s.time}ms\n`));
-      var data = [["Asset", "Size", "Chunks", "", "", "Chunk Names"]];
+      var data = [['Asset', 'Size', 'Chunks', '', '', 'Chunk Names']];
       // Print the result:
       s.assets.forEach(function (asset) {
-        data.push([asset.name.replace(/.+\//, ''), formatSize(asset.size), asset.chunks.join(', '), asset.emitted ? "[emitted]" : "", asset.isOverSizeLimit ? "[big]" : "", asset.chunkNames.join(", ")]);
+        data.push([asset.name.replace(/.+\//, ''), formatSize(asset.size), asset.chunks.join(', '), asset.emitted ? '[emitted]' : '', asset.isOverSizeLimit ? '[big]' : '', asset.chunkNames.join(', ')]);
       });
 
       var maxLength = data[0].map(function (v) {
@@ -594,8 +630,6 @@ try {
           query: {
             language: config.i18n.defaultLanguage
           }
-        }, {
-          loader: require.resolve('json-loader')
         }]
       });
 
@@ -624,10 +658,8 @@ try {
 
     process.stderr.write(render('green', 'Watching Started!\n'));
   } else {
-
     var doCompile = function doCompile(opt, lang) {
       return new _promise2.default(function (resolve, reject) {
-
         var fopt = opt;
         if (typeof config.beforeBuildHook === 'function') {
           fopt = config.beforeBuildHook(fopt, lang);
@@ -651,7 +683,6 @@ try {
     };
 
     if (config.i18n && config.i18n.languages) {
-
       var allDone = [];
 
       config.i18n.languages.forEach(function (lang) {
@@ -685,8 +716,6 @@ try {
             query: {
               language: lang
             }
-          }, {
-            loader: require.resolve('json-loader')
           }]
         });
         opt.output.filename = filename;

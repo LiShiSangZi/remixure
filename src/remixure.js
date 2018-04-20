@@ -6,15 +6,44 @@ const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const chalk = require('chalk');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CleanPlugin = require('clean-webpack-plugin');
-const InterpolateHtmlPlugin = require('react-dev-utils/InterpolateHtmlPlugin');
+// TODO: Put it back when react-dev-utils support Webpack 4.
+// const InterpolateHtmlPlugin = require('react-dev-utils/InterpolateHtmlPlugin');
 const execa = require('execa');
 
-var ProgressBarPlugin = require('progress-bar-webpack-plugin');
+const ProgressBarPlugin = require('progress-bar-webpack-plugin');
 
 const path = require('path');
 const fs = require('fs');
 
 const colorSupported = require('supports-color');
+
+// TODO: Remove me when react-dev-utils support webpack 4.
+const escapeStringRegexp = require('escape-string-regexp');
+
+class InterpolateHtmlPlugin {
+  constructor(replacements) {
+    this.replacements = replacements;
+  }
+
+  apply(compiler) {
+    compiler.hooks.compilation.tap('InterpolateHtmlPlugin', compilation => {
+      compilation.hooks.htmlWebpackPluginBeforeHtmlProcessing.tap(
+        'InterpolateHtmlPlugin',
+        data => {
+          // Run HTML through a series of user-specified string replacements.
+          Object.keys(this.replacements).forEach(key => {
+            const value = this.replacements[key];
+            data.html = data.html.replace(
+              new RegExp('%' + escapeStringRegexp(key) + '%', 'g'),
+              value
+            );
+          });
+        }
+      );
+    });
+  }
+}
+// End TODO.
 
 const baseFolder = path.resolve('.');
 const configPath = path.join(baseFolder, 'config');
@@ -28,7 +57,7 @@ const render = (color, content) => {
     return chalk[color](content);
   }
   return content;
-}
+};
 
 process.stderr.write(render('green', 'Start to do job.\n'));
 
@@ -36,7 +65,12 @@ try {
   const c = require(path.join(configPath, 'config.default.js'));
   config = c;
 } catch (e) {
-  process.stderr.write(render('red', 'The config file is not found or something wrong when compile the config file! You need a config.default.js file under config folder.\n'));
+  process.stderr.write(
+    render(
+      'red',
+      'The config file is not found or something wrong when compile the config file! You need a config.default.js file under config folder.\n'
+    )
+  );
 
   setImmediate(() => process.exit(1));
 }
@@ -67,12 +101,10 @@ try {
   const addFileName = `config.${env}.js`;
   const c = require(path.join(configPath, addFileName));
   config = Object.assign(config, c);
-} catch (e) {
-
-}
+} catch (e) {}
 process.stderr.write(render('green', `The current enviroment is ${env}.\n`));
 
-const sourceFolder = path.join(baseFolder, (config.srcFolder || 'src'));
+const sourceFolder = path.join(baseFolder, config.srcFolder || 'src');
 
 if (!process.env.BABEL_ENV) {
   if (isDev) {
@@ -87,12 +119,19 @@ let entry = {};
 if (config.entry && config.entry.entries) {
   entry = Object.assign(entry, config.entry.entries);
 } else {
-  fs.readdirSync(sourceFolder).filter(file => {
-    file = file.replace(/^(.*)\//, '');
-    return fs.statSync(path.join(sourceFolder, file)).isFile() && /\.js(x*)$/.test(file) && (!config.entry || config.entry.exclude.indexOf(file) < 0);
-  }).forEach(file => {
-    entry[file.replace(/\.js(x*)$/, '')] = path.join(sourceFolder, file);
-  });
+  fs
+    .readdirSync(sourceFolder)
+    .filter(file => {
+      file = file.replace(/^(.*)\//, '');
+      return (
+        fs.statSync(path.join(sourceFolder, file)).isFile() &&
+        /\.js(x*)$/.test(file) &&
+        (!config.entry || config.entry.exclude.indexOf(file) < 0)
+      );
+    })
+    .forEach(file => {
+      entry[file.replace(/\.js(x*)$/, '')] = path.join(sourceFolder, file);
+    });
 }
 
 const browsers = config.browsers || [
@@ -103,16 +142,20 @@ const browsers = config.browsers || [
 ];
 
 if (Object.keys(entry).length < 1) {
-  process.stderr.write(render('red', `You do not have entry files under folder ${sourceFolder}.\n`));
+  process.stderr.write(
+    render('red', `You do not have entry files under folder ${sourceFolder}.\n`)
+  );
 
   setImmediate(() => process.exit(1));
 }
 
 let includeModules = [];
 if (config.compiledNodeModules) {
-  includeModules = config.compiledNodeModules.map(m =>
-    // path.join(sourceFolder, 'node_modules', m));
-    new RegExp(`node_modules/${m}`));
+  includeModules = config.compiledNodeModules.map(
+    m =>
+      // path.join(sourceFolder, 'node_modules', m));
+      new RegExp(`node_modules/${m}`)
+  );
 }
 const babelConfig = {
   loader: require.resolve('babel-loader'),
@@ -122,14 +165,12 @@ const babelConfig = {
         require.resolve('babel-preset-env'),
         {
           targets: {
-            browsers,
+            browsers
           },
-          useBuiltIns: true,
+          useBuiltIns: true
         }
       ],
-      [
-        require.resolve('babel-preset-react'),
-      ]
+      [require.resolve('babel-preset-react')]
     ],
     plugins: [
       require.resolve('babel-plugin-transform-decorators-legacy'),
@@ -139,8 +180,8 @@ const babelConfig = {
       require.resolve('babel-plugin-transform-runtime')
     ],
     cacheDirectory: true,
-    compact: true,
-  },
+    compact: true
+  }
 };
 
 if (config.enableDva) {
@@ -151,7 +192,7 @@ if (config.enableDva) {
 const babelLoader = {
   test: /\.(js|jsx)$/,
   // exclude: /node_modules/,
-  exclude: (path) => {
+  exclude: path => {
     if (/node_modules/.test(path)) {
       for (let i = 0; i < includeModules.length; i++) {
         if (includeModules[i].test(path)) {
@@ -162,29 +203,38 @@ const babelLoader = {
     }
     return false;
   },
-  use: babelConfig,
+  use: babelConfig
 };
 
 if (config.antd) {
-  babelLoader.use.options.plugins.push([require.resolve('babel-plugin-import'), [{
-    libraryName: "antd",
-    libraryDirectory: "es",
-    style: true
-  }]]);
+  babelLoader.use.options.plugins.push([
+    require.resolve('babel-plugin-import'),
+    [
+      {
+        libraryName: 'antd',
+        libraryDirectory: 'es',
+        style: true
+      }
+    ]
+  ]);
 }
 const rules = [babelLoader];
 
 if (config.less) {
-  const use = [{
-    loader: require.resolve('css-loader'),
-    options: {
-      importLoaders: 1,
-      sourceMap: isDev || !!config.enableSourceMap,
-      minimize: !isDev,
-      modules: config.less.enableCSSModule,
-      localIdentName: config.less.enableCSSModule ? '[name]__[local]___[hash:base64:5]' : null,
+  const use = [
+    {
+      loader: require.resolve('css-loader'),
+      options: {
+        importLoaders: 1,
+        sourceMap: isDev || !!config.enableSourceMap,
+        minimize: !isDev,
+        modules: config.less.enableCSSModule,
+        localIdentName: config.less.enableCSSModule
+          ? '[name]__[local]___[hash:base64:5]'
+          : null
+      }
     }
-  }];
+  ];
 
   if (config.less.enablePostCSS) {
     use.push({
@@ -197,9 +247,9 @@ if (config.less) {
           require('postcss-flexbugs-fixes'),
           autoprefixer({
             browsers,
-            flexbox: 'no-2009',
-          }),
-        ],
+            flexbox: 'no-2009'
+          })
+        ]
       },
       options: {
         sourceMap: true,
@@ -218,12 +268,12 @@ if (config.less) {
     loader: require.resolve('less-loader'),
     options: {
       ...lessOpt
-    },
+    }
   });
 
   rules.push({
     test: /\.css$/,
-    exclude: (path) => {
+    exclude: path => {
       if (config.ignoreCSSModule) {
         const reg = new RegExp(config.ignoreCSSModule.join('|'));
         if (reg.test(path)) {
@@ -239,20 +289,22 @@ if (config.less) {
     },
     use: ExtractTextPlugin.extract({
       fallback: require.resolve('style-loader'),
-      use: [{
-        loader: require.resolve('css-loader'),
-        options: {
-          importLoaders: 3,
-          sourceMap: isDev || !!config.enableSourceMap,
-          minimize: !isDev,
+      use: [
+        {
+          loader: require.resolve('css-loader'),
+          options: {
+            importLoaders: 3,
+            sourceMap: isDev || !!config.enableSourceMap,
+            minimize: !isDev
+          }
         }
-      }]
-    }),
+      ]
+    })
   });
 
   rules.push({
     test: /\.less$/,
-    exclude: (path) => {
+    exclude: path => {
       if (config.ignoreCSSModule) {
         const reg = new RegExp(config.ignoreCSSModule.join('|'));
         if (reg.test(path)) {
@@ -268,12 +320,11 @@ if (config.less) {
     },
     use: ExtractTextPlugin.extract({
       fallback: require.resolve('style-loader'),
-      use,
-    }),
+      use
+    })
   });
 
   if (config.antd && config.less.enableCSSModule) {
-
     // if (config.antd && /antd/.test(path)) {
     //   return true;
     // }
@@ -287,12 +338,13 @@ if (config.less) {
       include: new RegExp(r.join('|')),
       use: ExtractTextPlugin.extract({
         fallback: require.resolve('style-loader'),
-        use: [{
+        use: [
+          {
             loader: require.resolve('css-loader'),
             options: {
               importLoaders: 3,
               sourceMap: isDev || !!config.enableSourceMap,
-              minimize: !isDev,
+              minimize: !isDev
             }
           },
           {
@@ -300,10 +352,10 @@ if (config.less) {
             options: {
               modifyVars: config.antd.theme,
               javascriptEnabled: true
-            },
-          },
-        ],
-      }),
+            }
+          }
+        ]
+      })
     });
   }
 }
@@ -322,23 +374,21 @@ rules.push({
   loader: require.resolve('url-loader'),
   options: {
     limit: 10000,
-    name: `static/media/${standardName}`,
-
-  },
+    name: `static/media/${standardName}`
+  }
 });
 rules.push({
   test: /\.(html)$/,
   loader: require.resolve('url-loader'),
-  exclude: (path) => {
+  exclude: path => {
     const publicPath = config.htmlPath || '/index.html';
     const regExp = new RegExp(publicPath);
     return regExp.test(path);
   },
   options: {
     limit: 100,
-    name: `static/html/${standardName}`,
-
-  },
+    name: `static/html/${standardName}`
+  }
 });
 
 const fontSettings = config.fontSettings || {};
@@ -350,8 +400,8 @@ rules.push({
     limit: 10000,
     // Use origin name, add hashes when generating fonts
     name: '[name].[ext]',
-    ...fontSettings,
-  },
+    ...fontSettings
+  }
 });
 
 /** Init the plugin. */
@@ -366,34 +416,42 @@ if (config.cleanBeforeBuild) {
 }
 
 if (!isDev && !config.ignoreUglify) {
-  plugins.push(new webpack.optimize.UglifyJsPlugin({
-    compress: {
-      warnings: false,
-      // Disabled because of an issue with Uglify breaking seemingly valid code:
-      // https://github.com/facebookincubator/create-react-app/issues/2376
-      // Pending further investigation:
-      // https://github.com/mishoo/UglifyJS2/issues/2011
-      comparisons: false,
-    },
-    output: {
-      comments: false,
-      // Turned on because emoji and regex is not minified properly using default
-      // https://github.com/facebookincubator/create-react-app/issues/2488
-      ascii_only: true,
-    },
-    parallel: config.uglifyParallel,
-    sourceMap: !!config.enableSourceMap,
-  }));
-  plugins.push(new webpack.DefinePlugin({
-    'process.env.NODE_ENV': JSON.stringify('production')
-  }));
+  plugins.push(
+    new webpack.optimize.UglifyJsPlugin({
+      compress: {
+        warnings: false,
+        // Disabled because of an issue with Uglify breaking seemingly valid code:
+        // https://github.com/facebookincubator/create-react-app/issues/2376
+        // Pending further investigation:
+        // https://github.com/mishoo/UglifyJS2/issues/2011
+        comparisons: false
+      },
+      output: {
+        comments: false,
+        // Turned on because emoji and regex is not minified properly using default
+        // https://github.com/facebookincubator/create-react-app/issues/2488
+        ascii_only: true
+      },
+      parallel: config.uglifyParallel,
+      sourceMap: !!config.enableSourceMap
+    })
+  );
+  plugins.push(
+    new webpack.DefinePlugin({
+      'process.env.NODE_ENV': JSON.stringify('production')
+    })
+  );
 }
 
-plugins.push(new ExtractTextPlugin({
-  filename: !config.ignoreNameHash ? '[name].[hash:8].min.css' : '[name].min.css',
-  allChunks: true,
-  ignoreOrder: true,
-}));
+plugins.push(
+  new ExtractTextPlugin({
+    filename: !config.ignoreNameHash
+      ? '[name].[hash:8].min.css'
+      : '[name].min.css',
+    allChunks: true,
+    ignoreOrder: true
+  })
+);
 
 if (config.useMoment) {
   plugins.push(new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/));
@@ -404,9 +462,11 @@ if (config.addtionalPlugins) {
 }
 let chunksArray = [];
 if (exports.chunks && exports.chunks instanceof Array) {
-  plugin.push(new webpack.optimize.CommonsChunkPlugin({
-    names: exports.chunks,
-  }));
+  plugin.push(
+    new webpack.optimize.CommonsChunkPlugin({
+      names: exports.chunks
+    })
+  );
   chunksArray = exports.chunks;
 }
 if (config.htmlPath) {
@@ -416,7 +476,7 @@ if (config.htmlPath) {
       filename: `${_key}.html`,
       chunks: chunksArray.concat([_key]),
       inject: true,
-      template: htmlPath,
+      template: htmlPath
     });
 
     if (!isDev) {
@@ -430,22 +490,25 @@ if (config.htmlPath) {
         keepClosingSlash: true,
         minifyJS: true,
         minifyCSS: true,
-        minifyURLs: true,
-      }
+        minifyURLs: true
+      };
     }
 
     plugins.push(p);
   });
 }
 
-const outputFolder = path.join(baseFolder, (config.targetFolder || 'dist'));
+const outputFolder = path.join(baseFolder, config.targetFolder || 'dist');
 let filename = 'js/[name].[chunkhash:8].min.js';
 let chunkFilename = 'js/[name].[chunkhash:8].chunk.min.js';
 if (isDev || !!config.ignoreNameHash) {
   filename = 'js/[name].min.js';
   chunkFilename = 'js/[name].chunk.min.js';
 }
-const fileName = (isDev || !!config.ignoreNameHash) ? 'js/[name].min.js' : 'js/[name].[chunkhash:8].min.js';
+const fileName =
+  isDev || !!config.ignoreNameHash
+    ? 'js/[name].min.js'
+    : 'js/[name].[chunkhash:8].min.js';
 const alias = config.alias || {};
 
 /**
@@ -464,16 +527,24 @@ const webpackOpt = {
     filename,
     chunkFilename,
     // We inferred the "public path" (such as / or /my-project) from homepage.
-    publicPath: config.publicPath || '/',
+    publicPath: config.publicPath || '/'
   },
   resolve: {
     // This allows you to set a fallback for where Webpack should look for modules.
     // We placed these paths second because we want `node_modules` to "win"
     // if there are any conflicts. This matches Node resolution mechanism.
     // https://github.com/facebookincubator/create-react-app/issues/253
-    modules: [sourceFolder, path.join(baseFolder, 'node_modules'), path.join(__dirname, '..', 'node_modues'), path.join(baseFolder, 'plugins'), path.join(baseFolder, 'config')].concat(
+    modules: [
+      sourceFolder,
+      path.join(baseFolder, 'node_modules'),
+      path.join(__dirname, '..', 'node_modues'),
+      path.join(baseFolder, 'plugins'),
+      path.join(baseFolder, 'config')
+    ].concat(
       // It is guaranteed to exist because we tweak it in `env.js`
-      process.env.NODE_PATH ? process.env.NODE_PATH.split(path.delimiter).filter(Boolean) : []
+      process.env.NODE_PATH
+        ? process.env.NODE_PATH.split(path.delimiter).filter(Boolean)
+        : []
     ),
     // These are the reasonable defaults supported by the Node ecosystem.
     // We also include JSX as a common component filename extension to support
@@ -483,15 +554,15 @@ const webpackOpt = {
     // for React Native Web.
     extensions: ['.web.js', '.js', '.json', '.web.jsx', '.jsx'],
     alias: {
-      'components': path.join(sourceFolder, path.resolve(`components/index.js`)),
-      'assets': path.join(sourceFolder, path.resolve(`assets/`)),
-      ...alias,
+      components: path.join(sourceFolder, path.resolve(`components/index.js`)),
+      assets: path.join(sourceFolder, path.resolve(`assets/`)),
+      ...alias
     }
   },
   module: {
-    rules,
+    rules
   },
-  plugins,
+  plugins
 };
 
 if (isDev || config.enableSourceMap) {
@@ -499,17 +570,19 @@ if (isDev || config.enableSourceMap) {
 }
 
 // for auto refresh browser
-const inspectionAddress = config.inspection
+const inspectionAddress = config.inspection;
 
 const formatSize = size => {
   if (size <= 0) {
-    return "0 bytes";
+    return '0 bytes';
   }
 
-  const abbreviations = ["bytes", "kB", "MB", "GB"];
+  const abbreviations = ['bytes', 'kB', 'MB', 'GB'];
   const index = Math.floor(Math.log(size) / Math.log(1000));
 
-  return `${+(size / Math.pow(1000, index)).toPrecision(3)} ${abbreviations[index]}`;
+  return `${+(size / Math.pow(1000, index)).toPrecision(3)} ${
+    abbreviations[index]
+  }`;
 };
 
 const onComplete = (err, stats) => {
@@ -517,8 +590,8 @@ const onComplete = (err, stats) => {
     console.log(err);
   } else {
     const opt = {
-      colors: colorSupported,
-    }
+      colors: colorSupported
+    };
     const s = stats.toJson(opt);
     s.errors.forEach(e => process.stderr.write(render('red', e)));
     s.warnings.forEach(e => process.stderr.write(render('yellow', e)));
@@ -529,19 +602,19 @@ const onComplete = (err, stats) => {
         setImmediate(() => process.exit(1));
       }
     } else {
-      process.stderr.write(render('white', `Hash: ${s.hash}\nTime: ${s.time}ms\n`));
-      const data = [
-        ["Asset", "Size", "Chunks", "", "", "Chunk Names"]
-      ];
+      process.stderr.write(
+        render('white', `Hash: ${s.hash}\nTime: ${s.time}ms\n`)
+      );
+      const data = [['Asset', 'Size', 'Chunks', '', '', 'Chunk Names']];
       // Print the result:
       s.assets.forEach(asset => {
         data.push([
           asset.name.replace(/.+\//, ''),
           formatSize(asset.size),
           asset.chunks.join(', '),
-          asset.emitted ? "[emitted]" : "",
-          asset.isOverSizeLimit ? "[big]" : "",
-          asset.chunkNames.join(", "),
+          asset.emitted ? '[emitted]' : '',
+          asset.isOverSizeLimit ? '[big]' : '',
+          asset.chunkNames.join(', ')
         ]);
       });
 
@@ -554,26 +627,34 @@ const onComplete = (err, stats) => {
       });
 
       data.forEach(asset => {
-        const str = asset.map((a, index) => {
-          const length = a.length;
-          let add = maxLength[index] - length;
-          return `${a}${Buffer.alloc(add, ' ').toString()}`;
-        }).join(' ');
+        const str = asset
+          .map((a, index) => {
+            const length = a.length;
+            let add = maxLength[index] - length;
+            return `${a}${Buffer.alloc(add, ' ').toString()}`;
+          })
+          .join(' ');
 
         process.stderr.write(render('green', `${str}\n`));
       });
       process.stderr.write(render('green', 'Build Done!\n'));
     }
     try {
-      inspectionAddress && execa.shell('osascript refreshChrome.applescript "' + encodeURI(inspectionAddress) + '"', {
-        cwd: __dirname,
-        stdio: 'ignore',
-      });
+      inspectionAddress &&
+        execa.shell(
+          'osascript refreshChrome.applescript "' +
+            encodeURI(inspectionAddress) +
+            '"',
+          {
+            cwd: __dirname,
+            stdio: 'ignore'
+          }
+        );
     } catch (e) {
-      console.log(e)
+      console.log(e);
     }
   }
-}
+};
 
 try {
   if (isDev) {
@@ -582,21 +663,26 @@ try {
       defaultLanguage = config.i18n.defaultLanguage;
       webpackOpt.module.rules.push({
         test: /lang.json$/,
-        use: [{
-          loader: require.resolve('lang-loader'),
-          query: {
-            language: config.i18n.defaultLanguage,
-          },
-        }]
+        use: [
+          {
+            loader: require.resolve('lang-loader'),
+            query: {
+              language: config.i18n.defaultLanguage
+            }
+          }
+        ]
       });
 
       Object.keys(webpackOpt.resolve.alias).forEach(k => {
-        webpackOpt.resolve.alias[k] = webpackOpt.resolve.alias[k].replace('${lang}', config.i18n.defaultLanguage);
+        webpackOpt.resolve.alias[k] = webpackOpt.resolve.alias[k].replace(
+          '${lang}',
+          config.i18n.defaultLanguage
+        );
       });
 
       webpackOpt.plugins.push(
         new InterpolateHtmlPlugin({
-          language: config.i18n.defaultLanguage,
+          language: config.i18n.defaultLanguage
         }),
         new ProgressBarPlugin()
       );
@@ -611,17 +697,15 @@ try {
     devServer(config, webpackOpt);
 
     const watching = compiler.watch({}, onComplete);
-    
+
     compiler.hooks.done.tap('remixure', stats => {
       process.stderr.write(render('green', 'Compiling...\n'));
     });
 
     process.stderr.write(render('green', 'Watching Started!\n'));
   } else {
-
     const doCompile = (opt, lang) => {
       return new Promise((resolve, reject) => {
-
         let fopt = opt;
         if (typeof config.beforeBuildHook === 'function') {
           fopt = config.beforeBuildHook(fopt, lang);
@@ -638,26 +722,27 @@ try {
           }
         });
         const ProgressPlugin = require('webpack/lib/ProgressPlugin.js');
-        compiler.apply(new ProgressPlugin({
-          profile: true
-        }));
+        compiler.apply(
+          new ProgressPlugin({
+            profile: true
+          })
+        );
       });
-    }
+    };
 
     if (config.i18n && config.i18n.languages) {
-
       const allDone = [];
 
       config.i18n.languages.forEach(lang => {
         // Loop to set the language.
         let found = null;
 
-        const clone = (obj) => {
+        const clone = obj => {
           if (typeof obj === 'object' && !(obj instanceof RegExp)) {
             if (obj === null) {
               return obj;
             }
-            const res = (obj instanceof Array) ? [] : {};
+            const res = obj instanceof Array ? [] : {};
 
             if (obj.__proto__ && !(obj instanceof Array)) {
               res.__proto__ = obj.__proto__;
@@ -668,27 +753,29 @@ try {
             return res;
           }
           return obj;
-        }
+        };
         const opt = clone(webpackOpt);
         // const opt = {};
 
         opt.module.rules.push({
           test: /lang.json$/,
-          use: [{
-            loader: require.resolve('lang-loader'),
-            query: {
-              language: lang,
-            },
-          }],
+          use: [
+            {
+              loader: require.resolve('lang-loader'),
+              query: {
+                language: lang
+              }
+            }
+          ]
         });
         opt.output.filename = filename;
         opt.output.chunkFilename = chunkFilename;
         opt.output.path = `${opt.output.path}/${lang}`;
         opt.plugins.push(
           new InterpolateHtmlPlugin({
-            language: lang,
+            language: lang
           }),
-          new ProgressBarPlugin(),
+          new ProgressBarPlugin()
         );
         Object.keys(opt.resolve.alias).forEach(k => {
           opt.resolve.alias[k] = opt.resolve.alias[k].replace('${lang}', lang);
