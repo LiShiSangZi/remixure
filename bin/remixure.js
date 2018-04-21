@@ -41,6 +41,8 @@ var ExtractTextPlugin = require('extract-text-webpack-plugin');
 var chalk = require('chalk');
 var HtmlWebpackPlugin = require('html-webpack-plugin');
 var CleanPlugin = require('clean-webpack-plugin');
+var UglifyJsPlugin = require('uglifyjs-webpack-plugin');
+
 // TODO: Put it back when react-dev-utils support Webpack 4.
 // const InterpolateHtmlPlugin = require('react-dev-utils/InterpolateHtmlPlugin');
 var execa = require('execa');
@@ -411,25 +413,17 @@ if (config.cleanBeforeBuild) {
   }));
 }
 
+var optimization = {};
+
 if (!isDev && !config.ignoreUglify) {
-  plugins.push(new webpack.optimize.UglifyJsPlugin({
-    compress: {
-      warnings: false,
-      // Disabled because of an issue with Uglify breaking seemingly valid code:
-      // https://github.com/facebookincubator/create-react-app/issues/2376
-      // Pending further investigation:
-      // https://github.com/mishoo/UglifyJS2/issues/2011
-      comparisons: false
+  optimization.minimizer = [new UglifyJsPlugin({
+    cache: true,
+    parallel: !!config.uglifyParallel,
+    uglifyOptions: {
+      compress: false
     },
-    output: {
-      comments: false,
-      // Turned on because emoji and regex is not minified properly using default
-      // https://github.com/facebookincubator/create-react-app/issues/2488
-      ascii_only: true
-    },
-    parallel: config.uglifyParallel,
     sourceMap: !!config.enableSourceMap
-  }));
+  })];
   plugins.push(new webpack.DefinePlugin({
     'process.env.NODE_ENV': (0, _stringify2.default)('production')
   }));
@@ -535,7 +529,8 @@ var webpackOpt = {
   module: {
     rules
   },
-  plugins
+  plugins,
+  optimization
 };
 
 if (isDev || config.enableSourceMap) {
