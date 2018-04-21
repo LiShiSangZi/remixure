@@ -6,6 +6,8 @@ const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const chalk = require('chalk');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CleanPlugin = require('clean-webpack-plugin');
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
+
 // TODO: Put it back when react-dev-utils support Webpack 4.
 // const InterpolateHtmlPlugin = require('react-dev-utils/InterpolateHtmlPlugin');
 const execa = require('execa');
@@ -415,27 +417,17 @@ if (config.cleanBeforeBuild) {
   );
 }
 
+const optimization = {};
+
 if (!isDev && !config.ignoreUglify) {
-  plugins.push(
-    new webpack.optimize.UglifyJsPlugin({
-      compress: {
-        warnings: false,
-        // Disabled because of an issue with Uglify breaking seemingly valid code:
-        // https://github.com/facebookincubator/create-react-app/issues/2376
-        // Pending further investigation:
-        // https://github.com/mishoo/UglifyJS2/issues/2011
-        comparisons: false
-      },
-      output: {
-        comments: false,
-        // Turned on because emoji and regex is not minified properly using default
-        // https://github.com/facebookincubator/create-react-app/issues/2488
-        ascii_only: true
-      },
-      parallel: config.uglifyParallel,
-      sourceMap: !!config.enableSourceMap
-    })
-  );
+  optimization.minimizer = [new UglifyJsPlugin({
+    cache: true,
+    parallel: !!config.uglifyParallel,
+    uglifyOptions: {
+      compress: false,
+    },
+    sourceMap: !!config.enableSourceMap,
+  })];
   plugins.push(
     new webpack.DefinePlugin({
       'process.env.NODE_ENV': JSON.stringify('production')
@@ -527,7 +519,7 @@ const webpackOpt = {
     filename,
     chunkFilename,
     // We inferred the "public path" (such as / or /my-project) from homepage.
-    publicPath: config.publicPath || '/'
+    publicPath: config.publicPath || '/',
   },
   resolve: {
     // This allows you to set a fallback for where Webpack should look for modules.
@@ -539,12 +531,12 @@ const webpackOpt = {
       path.join(baseFolder, 'node_modules'),
       path.join(__dirname, '..', 'node_modues'),
       path.join(baseFolder, 'plugins'),
-      path.join(baseFolder, 'config')
+      path.join(baseFolder, 'config'),
     ].concat(
       // It is guaranteed to exist because we tweak it in `env.js`
       process.env.NODE_PATH
         ? process.env.NODE_PATH.split(path.delimiter).filter(Boolean)
-        : []
+        : [],
     ),
     // These are the reasonable defaults supported by the Node ecosystem.
     // We also include JSX as a common component filename extension to support
@@ -556,13 +548,14 @@ const webpackOpt = {
     alias: {
       components: path.join(sourceFolder, path.resolve(`components/index.js`)),
       assets: path.join(sourceFolder, path.resolve(`assets/`)),
-      ...alias
-    }
+      ...alias,
+    },
   },
   module: {
-    rules
+    rules,
   },
-  plugins
+  plugins,
+  optimization,
 };
 
 if (isDev || config.enableSourceMap) {
