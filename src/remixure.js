@@ -2,11 +2,17 @@
 
 const webpack = require('webpack');
 const autoprefixer = require('autoprefixer');
-const ExtractTextPlugin = require('extract-text-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const chalk = require('chalk');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CleanPlugin = require('clean-webpack-plugin');
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
+
+const {
+  generateCSSRuleObject,
+  generateDefaultOptions,
+  generatePostCSSRuleObject
+} = require('./utils/helper');
 
 // TODO: Put it back when react-dev-utils support Webpack 4.
 // const InterpolateHtmlPlugin = require('react-dev-utils/InterpolateHtmlPlugin');
@@ -49,10 +55,9 @@ class InterpolateHtmlPlugin {
 
 const baseFolder = path.resolve('.');
 const configPath = path.join(baseFolder, 'config');
-
 const devServer = require('./devServer');
 
-let config = {};
+let config = generateDefaultOptions();
 
 const render = (color, content) => {
   if (colorSupported) {
@@ -60,23 +65,14 @@ const render = (color, content) => {
   }
   return content;
 };
-
 process.stderr.write(render('green', 'Start to do job.\n'));
 
 try {
   const c = require(path.join(configPath, 'config.default.js'));
-  config = c;
+  config = Object.assign(config, c);
 } catch (e) {
-  process.stderr.write(
-    render(
-      'red',
-      'The config file is not found or something wrong when compile the config file! You need a config.default.js file under config folder.\n'
-    )
-  );
-
-  setImmediate(() => process.exit(1));
+  // The config.default.js does not exist. Ignore it.
 }
-
 let env = null;
 const args = process.argv.filter(arg => /^\-\-(.+)\=(.*)/.test(arg));
 const argObj = {};
@@ -104,7 +100,11 @@ try {
   const c = require(path.join(configPath, addFileName));
   config = Object.assign(config, c);
 } catch (e) {}
-process.stderr.write(render('green', `The current enviroment is ${env}.\n`));
+
+if (config.ignoreCSSModule && config.ignoreCSSModule.length < 1) {
+  delete config.ignoreCSSModule
+}
+  process.stderr.write(render('green', `The current enviroment is ${env}.\n`));
 
 const sourceFolder = path.join(baseFolder, config.srcFolder || 'src');
 
@@ -223,44 +223,10 @@ if (config.antd) {
 const rules = [babelLoader];
 
 if (config.less) {
-  const use = [
-    {
-      loader: require.resolve('css-loader'),
-      options: {
-        importLoaders: 1,
-        sourceMap: isDev || !!config.enableSourceMap,
-        minimize: !isDev,
-        modules: config.less.enableCSSModule,
-        localIdentName: config.less.enableCSSModule
-          ? '[name]__[local]___[hash:base64:5]'
-          : null
-      }
-    }
-  ];
+  const use = [generateCSSRuleObject(config, isDev)];
 
   if (config.less.enablePostCSS) {
-    use.push({
-      loader: require.resolve('postcss-loader'),
-      options: {
-        // Necessary for external CSS imports to work
-        // https://github.com/facebookincubator/create-react-app/issues/2677
-        ident: 'postcss',
-        plugins: () => [
-          require('postcss-flexbugs-fixes'),
-          autoprefixer({
-            browsers,
-            flexbox: 'no-2009'
-          })
-        ]
-      },
-      options: {
-        sourceMap: true,
-        minimize: false,
-        plugins: () => {
-          return [autoprefixer];
-        }
-      }
-    });
+    use.push(generatePostCSSRuleObject());
     use[0].options.importLoaders++;
   }
 
@@ -289,19 +255,7 @@ if (config.less) {
 
       return /node_modues/.test(path);
     },
-    use: ExtractTextPlugin.extract({
-      fallback: require.resolve('style-loader'),
-      use: [
-        {
-          loader: require.resolve('css-loader'),
-          options: {
-            importLoaders: 3,
-            sourceMap: isDev || !!config.enableSourceMap,
-            minimize: !isDev
-          }
-        }
-      ]
-    })
+    use: [MiniCssExtractPlugin.loader, generateCSSRuleObject(config, isDev)]
   });
 
   rules.push({
@@ -320,10 +274,7 @@ if (config.less) {
 
       return /node_modues/.test(path);
     },
-    use: ExtractTextPlugin.extract({
-      fallback: require.resolve('style-loader'),
-      use
-    })
+    use: [MiniCssExtractPlugin.loader, ...use]
   });
 
   if (config.antd && config.less.enableCSSModule) {
@@ -338,26 +289,7 @@ if (config.less) {
     rules.push({
       test: /\.less$/,
       include: new RegExp(r.join('|')),
-      use: ExtractTextPlugin.extract({
-        fallback: require.resolve('style-loader'),
-        use: [
-          {
-            loader: require.resolve('css-loader'),
-            options: {
-              importLoaders: 3,
-              sourceMap: isDev || !!config.enableSourceMap,
-              minimize: !isDev
-            }
-          },
-          {
-            loader: require.resolve('less-loader'),
-            options: {
-              modifyVars: config.antd.theme,
-              javascriptEnabled: true
-            }
-          }
-        ]
-      })
+      use: [MiniCssExtractPlugin.loader, ...use]
     });
   }
 }
@@ -420,14 +352,16 @@ if (config.cleanBeforeBuild) {
 const optimization = {};
 
 if (!isDev && !config.ignoreUglify) {
-  optimization.minimizer = [new UglifyJsPlugin({
-    cache: true,
-    parallel: !!config.uglifyParallel,
-    uglifyOptions: {
-      compress: false,
-    },
-    sourceMap: !!config.enableSourceMap,
-  })];
+  optimization.minimizer = [
+    new UglifyJsPlugin({
+      cache: true,
+      parallel: !!config.uglifyParallel,
+      uglifyOptions: {
+        compress: false
+      },
+      sourceMap: !!config.enableSourceMap
+    })
+  ];
   plugins.push(
     new webpack.DefinePlugin({
       'process.env.NODE_ENV': JSON.stringify('production')
@@ -436,12 +370,11 @@ if (!isDev && !config.ignoreUglify) {
 }
 
 plugins.push(
-  new ExtractTextPlugin({
-    filename: !config.ignoreNameHash
-      ? '[name].[hash:8].min.css'
-      : '[name].min.css',
-    allChunks: true,
-    ignoreOrder: true
+  new MiniCssExtractPlugin({
+    // Options similar to the same options in webpackOptions.output
+    // both options are optional
+    filename: '[name].css',
+    chunkFilename: '[id].css'
   })
 );
 
@@ -519,7 +452,7 @@ const webpackOpt = {
     filename,
     chunkFilename,
     // We inferred the "public path" (such as / or /my-project) from homepage.
-    publicPath: config.publicPath || '/',
+    publicPath: config.publicPath || '/'
   },
   resolve: {
     // This allows you to set a fallback for where Webpack should look for modules.
@@ -531,12 +464,12 @@ const webpackOpt = {
       path.join(baseFolder, 'node_modules'),
       path.join(__dirname, '..', 'node_modues'),
       path.join(baseFolder, 'plugins'),
-      path.join(baseFolder, 'config'),
+      path.join(baseFolder, 'config')
     ].concat(
       // It is guaranteed to exist because we tweak it in `env.js`
       process.env.NODE_PATH
         ? process.env.NODE_PATH.split(path.delimiter).filter(Boolean)
-        : [],
+        : []
     ),
     // These are the reasonable defaults supported by the Node ecosystem.
     // We also include JSX as a common component filename extension to support
@@ -548,14 +481,14 @@ const webpackOpt = {
     alias: {
       components: path.join(sourceFolder, path.resolve(`components/index.js`)),
       assets: path.join(sourceFolder, path.resolve(`assets/`)),
-      ...alias,
-    },
+      ...alias
+    }
   },
   module: {
-    rules,
+    rules
   },
   plugins,
-  optimization,
+  optimization
 };
 
 if (isDev || config.enableSourceMap) {

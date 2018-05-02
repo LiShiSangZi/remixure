@@ -62,3 +62,6 @@ yarn.lock
 
 bin/*
 
+# VSCode related files.
+.vscode
+
