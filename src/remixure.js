@@ -453,13 +453,13 @@ if (config.addtionalPlugins) {
   plugins = plugins.concat(config.addtionalPlugins);
 }
 let chunksArray = [];
-if (exports.chunks && exports.chunks instanceof Array) {
-  plugin.push(
+if (config.chunks && config.chunks instanceof Array) {
+  plugins.push(
     new webpack.optimize.CommonsChunkPlugin({
-      names: exports.chunks
+      names: config.chunks
     })
   );
-  chunksArray = exports.chunks;
+  chunksArray = config.chunks;
 }
 if (config.htmlPath) {
   const htmlPath = path.join(baseFolder, config.htmlPath);
