@@ -3,7 +3,7 @@
   "version": "1.0.3",
   "description": "React skeleton Framework to help build web app.",
   "main": "index.js",
-  "bin": "./src/remixure.js",
+  "bin": "./bin/remixure.js",
   "repository": "git@github.com:LiShiSangZi/remixure.git",
   "author": "gogocorw <gogocrow@163.com>",
   "license": "MIT",
