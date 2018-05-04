@@ -1,6 +1,6 @@
 {
   "name": "remixure",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "React skeleton Framework to help build web app.",
   "main": "index.js",
   "bin": "./bin/remixure.js",
