@@ -102,9 +102,9 @@ try {
 } catch (e) {}
 
 if (config.ignoreCSSModule && config.ignoreCSSModule.length < 1) {
-  delete config.ignoreCSSModule
+  delete config.ignoreCSSModule;
 }
-  process.stderr.write(render('green', `The current enviroment is ${env}.\n`));
+process.stderr.write(render('green', `The current enviroment is ${env}.\n`));
 
 const sourceFolder = path.join(baseFolder, config.srcFolder || 'src');
 
@@ -169,6 +169,7 @@ const babelConfig = {
           targets: {
             browsers
           },
+          modules: false,
           useBuiltIns: true
         }
       ],
