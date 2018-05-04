@@ -187,9 +187,6 @@ const babelConfig = {
   }
 };
 
-if (config.enableDva) {
-  babelConfig.options.plugins.push(require.resolve('babel-plugin-dva-hmr'));
-}
 
 // Enable babel-loader with React is default.
 const babelLoader = {
