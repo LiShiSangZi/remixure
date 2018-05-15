@@ -458,6 +458,7 @@ const webpackOpt = {
     // if there are any conflicts. This matches Node resolution mechanism.
     // https://github.com/facebookincubator/create-react-app/issues/253
     modules: [
+      "node_modules",
       sourceFolder,
       path.join(baseFolder, 'node_modules'),
       path.join(__dirname, '..', 'node_modues'),
