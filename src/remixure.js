@@ -367,12 +367,17 @@ if (!isDev && !config.ignoreUglify) {
   );
 }
 
+// TODO declare this on top
+const hasHash = !(isDev || !!config.ignoreNameHash)
+
 plugins.push(
   new MiniCssExtractPlugin({
     // Options similar to the same options in webpackOptions.output
     // both options are optional
-    filename: 'static/css/[name].css',
-    chunkFilename: 'static/css/[id].css'
+
+    // For long term caching
+    filename: `static/css/[name].${hasHash ? '[contentHash:8].' : ''}css`,
+    chunkFilename: `static/css/[id].${hasHash ? '[contentHash:8].' : ''}chunk.css`
   })
 );
 
@@ -422,16 +427,9 @@ if (config.htmlPath) {
 }
 
 const outputFolder = path.join(baseFolder, config.targetFolder || 'dist');
-let filename = 'static/js/[name].[chunkhash:8].min.js';
-let chunkFilename = 'static/js/[name].[chunkhash:8].chunk.min.js';
-if (isDev || !!config.ignoreNameHash) {
-  filename = 'static/js/[name].min.js';
-  chunkFilename = 'static/js/[name].chunk.min.js';
-}
-const fileName =
-  isDev || !!config.ignoreNameHash
-    ? 'static/js/[name].min.js'
-    : 'static/js/[name].[chunkhash:8].min.js';
+let filename = `static/js/[name].${hasHash ? '[chunkhash:8].' : ''}min.js`;
+let chunkFilename = `static/js/[name].${hasHash ? '[chunkhash:8].' : ''}chunk.min.js`;
+
 const alias = config.alias || {};
 
 /**
