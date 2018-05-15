@@ -132,7 +132,7 @@ if (config.entry && config.entry.entries) {
       );
     })
     .forEach(file => {
-      entry[file.replace(/\.js(x*)$/, '')] = path.join(sourceFolder, file);
+      entry[file.replace(/\.js(x*)$/, '')] = [path.resolve(__dirname, './polyfills'), path.join(sourceFolder, file)];
     });
 }
 
