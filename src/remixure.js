@@ -132,7 +132,7 @@ if (config.entry && config.entry.entries) {
       );
     })
     .forEach(file => {
-      entry[file.replace(/\.js(x*)$/, '')] = path.join(sourceFolder, file);
+      entry[file.replace(/\.js(x*)$/, '')] = [path.resolve(__dirname, './polyfills'), path.join(sourceFolder, file)];
     });
 }
 
@@ -284,6 +284,17 @@ if (config.less) {
     if (config.ignoreCSSModule) {
       r = r.concat(config.ignoreCSSModule);
     }
+
+    // disable css-modules
+    use.splice(0, 1, {
+      loader: require.resolve('css-loader'),
+      options: {
+        importLoaders: 1,
+        sourceMap: isDev || !!config.enableSourceMap,
+        minimize: !isDev,
+        modules: false
+      }
+    })
     rules.push({
       test: /\.less$/,
       include: new RegExp(r.join('|')),
@@ -367,12 +378,17 @@ if (!isDev && !config.ignoreUglify) {
   );
 }
 
+// TODO declare this on top
+const hasHash = !(isDev || !!config.ignoreNameHash)
+
 plugins.push(
   new MiniCssExtractPlugin({
     // Options similar to the same options in webpackOptions.output
     // both options are optional
-    filename: '[name].css',
-    chunkFilename: '[id].css'
+
+    // For long term caching
+    filename: `static/css/[name].${hasHash ? '[contentHash:8].' : ''}css`,
+    chunkFilename: `static/css/[id].${hasHash ? '[contentHash:8].' : ''}chunk.css`
   })
 );
 
@@ -422,16 +438,9 @@ if (config.htmlPath) {
 }
 
 const outputFolder = path.join(baseFolder, config.targetFolder || 'dist');
-let filename = 'js/[name].[chunkhash:8].min.js';
-let chunkFilename = 'js/[name].[chunkhash:8].chunk.min.js';
-if (isDev || !!config.ignoreNameHash) {
-  filename = 'js/[name].min.js';
-  chunkFilename = 'js/[name].chunk.min.js';
-}
-const fileName =
-  isDev || !!config.ignoreNameHash
-    ? 'js/[name].min.js'
-    : 'js/[name].[chunkhash:8].min.js';
+let filename = `static/js/[name].${hasHash ? '[chunkhash:8].' : ''}min.js`;
+let chunkFilename = `static/js/[name].${hasHash ? '[chunkhash:8].' : ''}chunk.min.js`;
+
 const alias = config.alias || {};
 
 /**
@@ -458,6 +467,7 @@ const webpackOpt = {
     // if there are any conflicts. This matches Node resolution mechanism.
     // https://github.com/facebookincubator/create-react-app/issues/253
     modules: [
+      "node_modules",
       sourceFolder,
       path.join(baseFolder, 'node_modules'),
       path.join(__dirname, '..', 'node_modues'),

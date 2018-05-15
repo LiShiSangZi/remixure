@@ -23,7 +23,7 @@ exports.generateCSSRuleObject = (config, isDev) => {
       importLoaders: 1,
       sourceMap: isDev || !!config.enableSourceMap,
       minimize: !isDev,
-      modules: false, //!!config.less.enableCSSModule,
+      modules: !!config.less.enableCSSModule,
       localIdentName: config.less.enableCSSModule
         ? '[name]__[local]___[hash:base64:5]'
         : null
@@ -45,11 +45,11 @@ exports.generateDefaultOptions = () => {
   };
 
   // TODO: Check if we have used antd:
-  const antdMain = require.resolve('antd', {
-    paths: [path.resolve('.')]
-  });
-  if (antdMain) {
-    config.antd = { theme: {} };
-  }
+  // const antdMain = require.resolve('antd', {
+  //   paths: [path.resolve('.')]
+  // });
+  // if (antdMain) {
+  //   config.antd = { theme: {} };
+  // }
   return config;
 };
