@@ -284,6 +284,17 @@ if (config.less) {
     if (config.ignoreCSSModule) {
       r = r.concat(config.ignoreCSSModule);
     }
+
+    // disable css-modules
+    use.splice(0, 1, {
+      loader: require.resolve('css-loader'),
+      options: {
+        importLoaders: 1,
+        sourceMap: isDev || !!config.enableSourceMap,
+        minimize: !isDev,
+        modules: false
+      }
+    })
     rules.push({
       test: /\.less$/,
       include: new RegExp(r.join('|')),
